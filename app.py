@@ -1,7 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import io
 import os
 from datetime import datetime, timedelta, timezone
@@ -9,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 # 1. Page Configuration
 st.set_page_config(page_title="ProProperty PSF Analyzer", layout="wide")
 
-# CSS for High-Contrast Site UI
+# CSS for Bold Site UI
 st.markdown("""
     <style>
     .stApp { background-color: white !important; }
@@ -68,9 +67,8 @@ m4.metric("Total Asking", f"${(our_ask * sqft):,.0f}")
 
 st.divider()
 
-# --- PLOTTING LOGIC (High DPI Focus) ---
-plt.rcParams['figure.dpi'] = 300
-fig, ax = plt.subplots(figsize=(16, 9))
+# --- PLOTTING LOGIC ---
+fig, ax = plt.subplots(figsize=(16, 9), dpi=300)
 fig.patch.set_facecolor('white')
 
 # Background Zones
@@ -79,8 +77,8 @@ ax.axvspan(lower_10, lower_5, color='#f1c40f', alpha=0.1)
 ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
 # Range Lines
-ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=10, linewidth=6)
-ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=10, linewidth=6)
+ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
+ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=8, linewidth=5)
 
 # Labels
 ax.text(t_low, 2.15, f"${int(t_low)} PSF", ha='center', weight='bold', color='#1f77b4')
@@ -89,12 +87,12 @@ ax.text(a_low, 0.75, f"${int(a_low)} PSF", ha='center', weight='bold', color='#3
 ax.text(a_high, 0.75, f"${int(a_high)} PSF", ha='center', weight='bold', color='#34495e')
 
 # Indicators
-ax.scatter(fmv, 2, color='black', s=180, zorder=5)
+ax.scatter(fmv, 2, color='black', s=150, zorder=5)
 ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
-ax.scatter(our_ask, 1, color=status_color, s=300, edgecolors='black', zorder=6)
-ax.plot([our_ask, our_ask], [1, 0.4], color=status_color, linestyle='--', linewidth=2.5)
+ax.scatter(our_ask, 1, color=status_color, s=250, edgecolors='black', zorder=6)
+ax.plot([our_ask, our_ask], [1, 0.4], color=status_color, linestyle='--', linewidth=2)
 
-# Axis Titles
+# Row Titles
 min_plot_x = min(t_low, a_low, fmv, lower_10)
 label_x = min_plot_x - 180 
 ax.text(label_x, 2, 'TRANSACTED PSF', weight='bold', color='#2980b9', ha='left', va='center')
@@ -105,23 +103,23 @@ header_text = f"Dev: {dev_name}  |  Unit: {unit_no}  |  Size: {sqft} sqft  |  Ty
 ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
          bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
 
-# Value Labels
-ax.text(fmv, 0.2, f'FMV\n${fmv:,.0f} PSF', ha='center', weight='bold', fontsize=11)
-ax.text(our_ask, 0.2, f'OUR ASK\n${our_ask:,.0f} PSF', ha='center', weight='bold', color=status_color, fontsize=12)
+# Value Labels (FIXED STRING ERROR HERE)
+ax.text(fmv, 0.2, f"FMV\n${fmv:,.0f} PSF", ha='center', weight='bold', fontsize=11)
+ax.text(our_ask, 0.2, f"OUR ASK\n${our_ask:,.0f} PSF", ha='center', weight='bold', color=status_color, fontsize=12)
 
 # Status Title
 ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
-# --- SHARP LOGO PLACEMENT ---
+# --- FINAL LOGO FIX: Dedicated Axis for High Clarity ---
 if os.path.exists("logo.png"):
-    img = mpimg.imread("logo.png")
-    # OffsetImage keeps the pixel density higher
-    imagebox = OffsetImage(img, zoom=0.25, interpolation='sinc') 
-    ab = AnnotationBbox(imagebox, (0.92, 0.90), xycoords='axes fraction', frameon=False)
-    ax.add_artist(ab)
+    logo_img = mpimg.imread("logo.png")
+    # This creates a separate box for the logo at the top right [left, bottom, width, height]
+    logo_ax = fig.add_axes([0.72, 0.78, 0.22, 0.15]) 
+    logo_ax.imshow(logo_img)
+    logo_ax.axis('off')
 
 ax.axis('off')
-ax.set_ylim(-0.6, 3.7) 
+ax.set_ylim(-0.6, 3.8) 
 ax.set_xlim(label_x - 20, max(t_high, a_high, fmv, upper_10) + 120)
 
 st.pyplot(fig)
