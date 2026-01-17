@@ -8,14 +8,16 @@ from datetime import datetime, timedelta, timezone
 # 1. Page Configuration
 st.set_page_config(page_title="ProProperty PSF Analyzer", layout="wide")
 
-# CSS for Compact Sidebar, Grey Input Boxes, and Matching Grey Download Button
+# CSS for Branding and Layout
 st.markdown("""
     <style>
     .stApp { background-color: white !important; }
     
+    /* COMPACT SIDEBAR */
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 0rem !important; }
     div[data-testid="stTextSelectionContainer"] > div { margin-bottom: -15px !important; }
 
+    /* Input Box Styling (Light Grey with Black Text) */
     .stTextInput input, .stNumberInput input {
         background-color: #eeeeee !important;
         color: #000000 !important;
@@ -23,6 +25,7 @@ st.markdown("""
         height: 32px !important;
     }
 
+    /* Button Styling */
     div.stDownloadButton > button {
         background-color: #eeeeee !important;
         color: #000000 !important;
@@ -37,6 +40,7 @@ st.markdown("""
         color: #000000 !important;
     }
 
+    /* Text Color Rules */
     [data-testid="stMetricLabel"] { color: #000000 !important; font-weight: 800 !important; }
     [data-testid="stMetricValue"] { color: #1f77b4 !important; font-weight: 900 !important; }
     h1, h2, h3, p, span { color: #000000 !important; font-weight: 700 !important; }
@@ -52,8 +56,12 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- SIDEBAR ---
+# --- SIDEBAR: BRANDING & INPUTS ---
 with st.sidebar:
+    # Top Branding Section
+    if os.path.exists("logo.png"):
+        st.image("logo.png", use_container_width=True)
+    
     st.markdown("### Report Details")
     dev_name = st.text_input("Development", "")
     unit_no  = st.text_input("Unit Number", "")
@@ -72,7 +80,7 @@ with st.sidebar:
     st.markdown("### Pricing Data")
     fmv    = st.number_input("Fair Market Value (PSF)", value=0)
     our_ask = st.number_input("Our Asking (PSF)", value=0)
-    
+
 # --- CALCULATIONS ---
 has_data = fmv > 0 and our_ask > 0
 
@@ -108,18 +116,15 @@ m4.metric("Total Asking (Quantum)", f"${(our_ask * sqft):,.0f}")
 
 st.divider()
 
-# --- PLOTTING / PLACEHOLDER LOGIC ---
+# --- PLOTTING / PLACEHOLDER ---
 if not has_data:
-    # Professional Placeholder Box
-    st.info("📊 **Graph will be generated once Market Values are entered.** Please enter 'Fair Market Value' and 'Our Asking PSF' in the sidebar.")
-    
-    # Optional: Mock visual placeholder
-    fig, ax = plt.subplots(figsize=(16, 4))
-    ax.text(0.5, 0.5, "Chart Preview Area", color="#bdc3c7", fontsize=20, ha='center', va='center', weight='bold')
-    ax.axis('off')
-    st.pyplot(fig)
+    st.info("📊 **Graph will be generated once Market Values are entered.**")
+    # Small preview area
+    fig_empty, ax_empty = plt.subplots(figsize=(16, 2))
+    ax_empty.axis('off')
+    st.pyplot(fig_empty)
 else:
-    # THE ACTUAL GRAPH CODE
+    # Full Chart Generation
     fig, ax = plt.subplots(figsize=(16, 9), dpi=300)
     fig.patch.set_facecolor('white')
 
@@ -127,33 +132,40 @@ else:
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
+    # Range Lines
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=8, linewidth=5)
 
+    # Text Labels (Black)
     ax.text(t_low, 2.15, f"${int(t_low)} PSF", ha='center', weight='bold', color='black')
     ax.text(t_high, 2.15, f"${int(t_high)} PSF", ha='center', weight='bold', color='black')
     ax.text(a_low, 0.75, f"${int(a_low)} PSF", ha='center', weight='bold', color='black')
     ax.text(a_high, 0.75, f"${int(a_high)} PSF", ha='center', weight='bold', color='black')
 
+    # Data Points
     ax.scatter(fmv, 2, color='black', s=150, zorder=5)
     ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
     ax.scatter(our_ask, 1, color=status_color, s=250, edgecolors='black', zorder=6)
     ax.plot([our_ask, our_ask], [1, -0.1], color=status_color, linestyle='--', linewidth=2)
 
+    # Sidebar alignment
     min_val = min(t_low, a_low, fmv) if any([t_low, a_low, fmv]) else 800
     label_x = min_val - 180 
     ax.text(label_x, 2, 'TRANSACTED PSF', weight='bold', color='black', ha='left', va='center')
     ax.text(label_x, 1, 'CURRENT ASKING PSF', weight='bold', color='black', ha='left', va='center')
 
+    # Info Box & Status
     header_text = f"Dev: {dev_name}  |  Unit: {unit_no}  |  Size: {sqft} sqft  |  Type: {u_type}\nPrepared By: {prepared_by}  |  Date: {today_date}"
     ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
              bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
-
+    
+    # Bottom labels adjusted to never overlap
     ax.text(fmv, 0.2, f"FMV\n${fmv:,.0f} PSF", ha="center", weight="bold", fontsize=11, color='black')
     ax.text(our_ask, -0.4, f"OUR ASK\n${our_ask:,.0f} PSF", ha="center", weight="bold", color='black', fontsize=12)
 
     ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
+    # Chart Logo (Top Right)
     if os.path.exists("logo.png"):
         logo_img = mpimg.imread("logo.png")
         logo_ax = fig.add_axes([0.82, 0.82, 0.15, 0.10]) 
@@ -166,7 +178,7 @@ else:
 
     st.pyplot(fig)
 
-    # --- DOWNLOAD SECTION (Only show if graph exists) ---
+    # --- SIDEBAR DOWNLOAD ---
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Download")
     fn_dev = dev_name.replace(" ", "_") if dev_name else "Project"
