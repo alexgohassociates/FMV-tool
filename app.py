@@ -206,6 +206,7 @@ if has_data:
     # 6. HEADERS & LOGO (Top Layer)
     
     # A. Logo on Graph (Top Right)
+    # y=0.85 to 0.97. Center is approx 0.91.
     if os.path.exists("logo.png"):
         try:
             logo_img = Image.open("logo.png")
@@ -216,14 +217,15 @@ if has_data:
             pass 
 
     # B. Footer/Details Info (Top Left)
+    # UPDATED: va='center' at y=0.91 to align with Logo middle. Font size reduced to 10.
     info_str = (f"{dev_name} ({unit_no}) | {sqft:,} sqft | {u_type}\n"
                 f"Analysis by {prepared_by} | {today_date}")
     
-    ax.text(0.03, 0.95, info_str, transform=fig.transFigure, ha='left', va='top', fontsize=12, fontweight='bold',
+    ax.text(0.03, 0.91, info_str, transform=fig.transFigure, ha='left', va='center', fontsize=10, fontweight='bold',
             color='#555555', bbox=dict(facecolor='#f8f9fa', edgecolor='none', boxstyle='round,pad=0.5'))
 
-    # C. Status Banner (Top Left) - MOVED DOWN FOR MORE SPACE
-    # Old y = 0.87. New y = 0.82
+    # C. Status Banner (Top Left)
+    # y=0.82 (Kept spacing from previous step)
     
     # 1. The Dot
     ax.scatter([0.04], [0.82], s=180, color=status_color, marker='o', transform=fig.transFigure, clip_on=False, zorder=20)
