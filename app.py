@@ -8,34 +8,47 @@ from PIL import Image
 # 1. Page Configuration
 st.set_page_config(page_title="ProProperty PSF Analyzer", layout="wide")
 
-# --- CSS: FORCE LIGHT THEME & SPECIFIC UI ---
+# --- CSS: PERFECT "CLEAN" THEME ---
 st.markdown("""
     <style>
-    /* Main App Background */
+    /* 1. Main App Background -> White */
     .stApp { background-color: white !important; }
     
-    /* Global Text Coloring */
+    /* 2. Global Text -> Black & Helvetica */
     h1, h2, h3, p, div, label, .stMetric label, [data-testid="stMetricValue"] {
         color: #000000 !important;
         font-family: 'Helvetica', sans-serif;
     }
     
-    /* Force Sidebar to be White */
+    /* 3. Sidebar -> White */
     [data-testid="stSidebar"] {
         background-color: #ffffff !important;
         border-right: 1px solid #e0e0e0;
     }
 
-    /* Force Sidebar Inputs to look like "Light Mode" (Grey box, black text) */
+    /* 4. Sidebar Inputs -> Light Grey Box with Black Text */
     [data-testid="stSidebar"] .stTextInput input, 
     [data-testid="stSidebar"] .stNumberInput input {
         color: #000000 !important;
-        background-color: #f0f2f6 !important; /* Light Grey */
+        background-color: #f0f2f6 !important; /* Matches standard light input */
         border-color: #d1d5db !important;
     }
     
-    /* Force Sidebar Labels to be Black */
+    /* 5. Sidebar Labels -> Black */
     [data-testid="stSidebar"] label {
+        color: #000000 !important;
+    }
+
+    /* 6. DOWNLOAD BUTTON -> Match Input Fields Exactly */
+    div.stDownloadButton > button {
+        background-color: #f0f2f6 !important; /* Light Grey */
+        color: #000000 !important;             /* Black Text */
+        border: 1px solid #d1d5db !important;  /* Grey Border */
+        width: 100%;                           /* Full Width */
+    }
+    div.stDownloadButton > button:hover {
+        background-color: #e5e7eb !important;  /* Slightly darker on hover */
+        border-color: #9ca3af !important;
         color: #000000 !important;
     }
 
@@ -198,7 +211,7 @@ if has_data:
     # Render
     st.pyplot(fig)
 
-# --- SIDEBAR DOWNLOAD BUTTON (Placed at the end) ---
+# --- SIDEBAR DOWNLOAD BUTTON (Placed at the very end) ---
 with st.sidebar:
     st.markdown("---")
     if fig is not None:
