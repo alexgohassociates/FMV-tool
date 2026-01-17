@@ -122,23 +122,32 @@ if has_data:
     fmv = float(fmv)
     our_ask = float(our_ask)
     
-    lower_5, upper_5 = fmv * 0.95, fmv * 1.05
-    lower_10, upper_10 = fmv * 0.90, fmv * 1.10
+    # Calculate thresholds for chart logic
+    upper_5 = fmv * 1.05
+    upper_10 = fmv * 1.10
+    
+    # For chart labels
+    lower_5 = fmv * 0.95
+    lower_10 = fmv * 0.90
+    
     diff_pct = (our_ask - fmv) / fmv
     
     # Quantum Calculations
     fmv_quantum = fmv * sqft
     ask_quantum = our_ask * sqft
     
-    # Dynamic styling based on variance
-    if abs(diff_pct) <= 0.05:
-        status_text = "Within +/- 5%"
+    # --- UPDATED STATUS LOGIC ---
+    if diff_pct <= 0.05:
+        # Green Zone: Less than or equal to +5% (Includes negatives)
+        status_text = "Asking ≤ +5% of FMV"
         status_color = "#2ecc71" # Green
-    elif abs(diff_pct) <= 0.10:
-        status_text = "Between 5 to 10%"
+    elif diff_pct <= 0.10:
+        # Yellow Zone: Between 5% and 10%
+        status_text = "Asking +5% to +10% of FMV"
         status_color = "#f1c40f" # Yellow
     else:
-        status_text = "Greater than 10%"
+        # Red Zone: Greater than 10%
+        status_text = "Asking > +10% of FMV"
         status_color = "#e74c3c" # Red
 else:
     status_text = "Waiting for Data..."
@@ -193,22 +202,21 @@ if has_data:
     x_min_limit = data_min - padding
     x_max_limit = data_max + (padding*0.5)
 
-    # 1. Shaded Zones - RESTRICTED HEIGHT (fill_betweenx)
+    # 1. Shaded Zones - 3 ZONES LOGIC
+    # Restricted height (bottom half only)
     y_shade = [y_min_limit, -0.5] 
     
-    # Red Zone (Far Left)
-    ax.fill_betweenx(y_shade, x_min_limit, lower_10, color='#e74c3c', alpha=0.1)
-    # Yellow Zone (Left)
-    ax.fill_betweenx(y_shade, lower_10, lower_5, color='#f1c40f', alpha=0.1)
-    # Green Zone (Middle)
-    ax.fill_betweenx(y_shade, lower_5, upper_5, color='#2ecc71', alpha=0.15)
-    # Yellow Zone (Right)
-    ax.fill_betweenx(y_shade, upper_5, upper_10, color='#f1c40f', alpha=0.1)
-    # Red Zone (Far Right)
-    ax.fill_betweenx(y_shade, upper_10, x_max_limit, color='#e74c3c', alpha=0.1)
-
+    # A) Green Zone: From far left to +5%
+    ax.fill_betweenx(y_shade, x_min_limit, upper_5, color='#2ecc71', alpha=0.15)
+    
+    # B) Yellow Zone: From +5% to +10%
+    ax.fill_betweenx(y_shade, upper_5, upper_10, color='#f1c40f', alpha=0.15)
+    
+    # C) Red Zone: From +10% to far right
+    ax.fill_betweenx(y_shade, upper_10, x_max_limit, color='#e74c3c', alpha=0.15)
 
     # 2. Zone Labels
+    # We maintain the 5% and 10% markers for reference
     y_labels_5 = -5.0 
     y_labels_10 = -6.5
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
@@ -234,11 +242,14 @@ if has_data:
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
     # 5. FMV vs Ask Markers
+    # FMV Marker
     ax.vlines(fmv, 2, -1.3, linestyles='dotted', colors='black', linewidth=2, zorder=5)
     ax.scatter(fmv, 2, color='black', s=100, zorder=10, marker='D')
     ax.text(fmv, -1.5, f"FMV\n${fmv:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    # ASKING label color changed to 'black'
+    # ASKING Marker
+    # Drop line and Circle use status_color (Green/Yellow/Red)
+    # Text uses 'black' for readability
     ax.vlines(our_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
     ax.scatter(our_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
     ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color='black')
