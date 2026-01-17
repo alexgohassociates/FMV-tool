@@ -166,18 +166,13 @@ if has_data:
     y_max_limit = 5.5
 
     # 1. Shaded Zones - RESTRICTED HEIGHT (fill_betweenx)
-    # y coordinates: From bottom limit (-8.0) up to just below the 0-line (-0.5)
-    # This keeps the shading ONLY in the valuation section, leaving the top white.
     y_shade = [y_min_limit, -0.5] 
     
-    # Yellow Zone (Left) -10% to -5%
     ax.fill_betweenx(y_shade, lower_10, lower_5, color='#f1c40f', alpha=0.1)
-    # Green Zone (Middle) -5% to +5%
     ax.fill_betweenx(y_shade, lower_5, upper_5, color='#2ecc71', alpha=0.15)
-    # Yellow Zone (Right) +5% to +10%
     ax.fill_betweenx(y_shade, upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
-    # 2. Zone Labels (Level 3 & 4)
+    # 2. Zone Labels
     y_labels_5 = -5.0 
     y_labels_10 = -6.5
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
@@ -189,12 +184,10 @@ if has_data:
     ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF", **style_dict)
 
     # 3. Market Range Lines (Dumbbell Plot)
-    # Transacted (y=2). Labels moved UP to 2.45
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
     ax.text(t_low, 2.45, f"${t_low:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
     ax.text(t_high, 2.45, f"${t_high:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
 
-    # Asking (y=1). Labels moved DOWN to 0.55
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
     ax.text(a_low, 0.55, f"${a_low:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
     ax.text(a_high, 0.55, f"${a_high:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
@@ -204,13 +197,11 @@ if has_data:
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
-    # 5. FMV vs Ask Markers (Level 1 & 2)
-    # A) FMV (y = -1.5)
+    # 5. FMV vs Ask Markers
     ax.vlines(fmv, 2, -1.3, linestyles='dotted', colors='black', linewidth=2, zorder=5)
     ax.scatter(fmv, 2, color='black', s=100, zorder=10, marker='D')
     ax.text(fmv, -1.5, f"FMV\n${fmv:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    # B) Your Ask (y = -3.0)
     ax.vlines(our_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
     ax.scatter(our_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
     ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color=status_color)
@@ -243,16 +234,27 @@ if has_data:
     
     st.pyplot(fig)
 
-# --- SIDEBAR DOWNLOAD BUTTON ---
+# --- SIDEBAR DOWNLOAD BUTTON (WITH CUSTOM FILENAME) ---
 with st.sidebar:
     st.markdown("---")
     if fig is not None:
+        # Generate safe filename: "DevName-Unit-Size-Date-Agent.png"
+        # 1. Format date as dd-mm-yyyy (safe for filenames)
+        filename_date = datetime.now(tz_sg).strftime("%d-%m-%Y")
+        
+        # 2. Sanitize inputs (replace slashes with dashes)
+        safe_dev = dev_name.replace("/", "-").replace("\\", "-")
+        safe_unit = unit_no.replace("/", "-")
+        
+        # 3. Construct filename
+        final_filename = f"{safe_dev}-{safe_unit}-{sqft}-{filename_date}-{prepared_by}.png"
+
         img_buffer = io.BytesIO()
         fig.savefig(img_buffer, format='png', bbox_inches='tight', dpi=300)
         st.download_button(
             label="📥 Download Chart for PDF",
             data=img_buffer,
-            file_name=f"{dev_name}_Analysis.png",
+            file_name=final_filename,
             mime="image/png",
             use_container_width=True
         )
