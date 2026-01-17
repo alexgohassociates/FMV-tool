@@ -1,34 +1,57 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-from matplotlib.patches import Rectangle
 import io
+import os
 from datetime import datetime, timedelta, timezone
 from PIL import Image
 
 # 1. Page Configuration
 st.set_page_config(page_title="ProProperty PSF Analyzer", layout="wide")
 
-# --- CSS: CLEAN UI FOR SCREENSHOTS ---
+# --- CSS: FORCE LIGHT THEME & SPECIFIC UI ---
 st.markdown("""
     <style>
+    /* Main App Background */
     .stApp { background-color: white !important; }
-    h1, h2, h3, p, label, .stMetric label, [data-testid="stMetricValue"] {
+    
+    /* Global Text Coloring */
+    h1, h2, h3, p, div, label, .stMetric label, [data-testid="stMetricValue"] {
         color: #000000 !important;
         font-family: 'Helvetica', sans-serif;
     }
-    /* Hide Streamlit elements for a cleaner look */
+    
+    /* Force Sidebar to be White */
+    [data-testid="stSidebar"] {
+        background-color: #ffffff !important;
+        border-right: 1px solid #e0e0e0;
+    }
+
+    /* Force Sidebar Inputs to look like "Light Mode" (Grey box, black text) */
+    [data-testid="stSidebar"] .stTextInput input, 
+    [data-testid="stSidebar"] .stNumberInput input {
+        color: #000000 !important;
+        background-color: #f0f2f6 !important; /* Light Grey */
+        border-color: #d1d5db !important;
+    }
+    
+    /* Force Sidebar Labels to be Black */
+    [data-testid="stSidebar"] label {
+        color: #000000 !important;
+    }
+
+    /* Hide Streamlit Header/Footer */
     header, footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# --- SIDEBAR ---
+# --- SIDEBAR INPUTS ---
 with st.sidebar:
-    st.markdown("### 1. Branding")
-    uploaded_logo = st.file_uploader("Upload Logo (PNG/JPG)", type=['png', 'jpg', 'jpeg'])
+    # 1. Branding (Logo on Sidebar Top)
+    if os.path.exists("logo.png"):
+        st.image("logo.png", use_container_width=True)
     
-    st.markdown("---")
-    st.markdown("### 2. Property Details")
+    # 2. Property Details
+    st.markdown("### Property Details")
     dev_name = st.text_input("Development", "Kent Ridge Hill Residences")
     unit_no  = st.text_input("Unit", "02-57")
     sqft     = st.number_input("Size (sqft)", value=1079)
@@ -36,17 +59,19 @@ with st.sidebar:
     prepared_by = st.text_input("Agent Name", "James Koh")
     
     st.markdown("---")
-    st.markdown("### 3. Market Data")
-    # Auto-swap low/high if user enters them backwards
-    t1, t2 = st.number_input("Transacted Low", value=1000), st.number_input("Transacted High", value=1200)
+    
+    # 3. Market Data
+    st.markdown("### Market Data")
+    # Logic to auto-swap if user enters High in Low field
+    t1, t2 = st.number_input("Lowest Transacted (PSF)", value=1000), st.number_input("Highest Transacted (PSF)", value=1200)
     t_low, t_high = min(t1, t2), max(t1, t2)
     
-    a1, a2 = st.number_input("Asking Low", value=1100), st.number_input("Asking High", value=1300)
+    a1, a2 = st.number_input("Lowest Asking (PSF)", value=1100), st.number_input("Highest Asking (PSF)", value=1300)
     a_low, a_high = min(a1, a2), max(a1, a2)
     
-    st.markdown("### 4. Valuation")
-    fmv = st.number_input("Bank/Valuation (FMV)", value=1050)
-    our_ask = st.number_input("Your Asking Price", value=1100)
+    st.markdown("### Valuation")
+    fmv = st.number_input("FMV (PSF)", value=1050)
+    our_ask = st.number_input("Asking Price (PSF)", value=1100)
 
 # --- CALCULATIONS ---
 has_data = all(v is not None and v > 0 for v in [fmv, our_ask, t_high, a_high])
@@ -58,29 +83,46 @@ if has_data:
     lower_10, upper_10 = fmv * 0.90, fmv * 1.10
     diff_pct = (our_ask - fmv) / fmv
     
+    # Quantum Calculations
+    fmv_quantum = fmv * sqft
+    ask_quantum = our_ask * sqft
+    
     # Dynamic styling based on variance
     if abs(diff_pct) <= 0.05:
-        status_text, status_color = "FAIR VALUE", "#2ecc71" # Green
+        status_text = "Within +/- 5%"
+        status_color = "#2ecc71" # Green
     elif abs(diff_pct) <= 0.10:
-        status_text, status_color = "PREMIUM", "#f1c40f" # Yellow
+        status_text = "Between 5 to 10%"
+        status_color = "#f1c40f" # Yellow
     else:
-        status_text, status_color = "ABOVE MARKET", "#e74c3c" # Red
+        status_text = "Greater than 10%"
+        status_color = "#e74c3c" # Red
 else:
     status_text, status_color, diff_pct = "Waiting for Data...", "#7f8c8d", 0
+    fmv_quantum, ask_quantum = 0, 0
 
 # --- DASHBOARD LAYOUT ---
-st.title(f"📍 {dev_name}")
+# Title (Clean, no emoticons)
+st.title(f"{dev_name}")
 st.caption(f"Unit: {unit_no} | Size: {sqft:,} sqft | Type: {u_type}")
 
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Valuation (FMV)", f"${fmv:,.0f} psf")
-c2.metric("Your Ask", f"${our_ask:,.0f} psf")
-c3.metric("Gap", f"{diff_pct:+.1%}", delta_color="inverse")
-c4.metric("Total Quantum", f"${(our_ask * sqft):,.0f}")
+# Row 1: PSF Metrics & Variance
+c1, c2, c3 = st.columns(3)
+c1.metric("FMV (PSF)", f"${fmv:,.0f} psf")
+c2.metric("Asking (PSF)", f"${our_ask:,.0f} psf")
+c3.metric("Variance", f"{diff_pct:+.1%}", delta_color="inverse")
+
+# Row 2: Quantum Metrics
+c4, c5, c6 = st.columns(3) 
+c4.metric("FMV (Quantum)", f"${fmv_quantum:,.0f}")
+c5.metric("Asking (Quantum)", f"${ask_quantum:,.0f}")
 
 st.divider()
 
 # --- PLOTTING ENGINE ---
+# We define fig outside so we can access it for the download button later
+fig = None
+
 if has_data:
     # Create Figure
     fig, ax = plt.subplots(figsize=(16, 9), dpi=300)
@@ -91,9 +133,9 @@ if has_data:
     data_min = min(all_values)
     data_max = max(all_values)
     data_range = data_max - data_min
-    padding = data_range * 0.25 # Dynamic padding (25% of range)
+    padding = data_range * 0.25 # Dynamic padding
 
-    # 1. Shaded Zones (The "Safe" Zones)
+    # 1. Shaded Zones
     ax.axvspan(lower_10, lower_5, color='#f1c40f', alpha=0.1)  # Yellow zone
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.15)  # Green zone
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)  # Yellow zone
@@ -112,32 +154,34 @@ if has_data:
     # Asking
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=12, linewidth=8, solid_capstyle='round')
 
-    # 4. Labels for Lines (Dynamic placement)
-    # We place text to the LEFT of the minimum value, using the calculated padding
+    # 4. Labels for Lines
     text_x_pos = data_min - (data_range * 0.05) 
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
-    ax.text(text_x_pos, 1, 'MARKET ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
+    ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
-    # 5. The "Status" Banner
-    ax.text((data_min + data_max)/2, 3.5, f"STATUS: {status_text}", fontsize=24, weight='bold', color=status_color, ha='center',
+    # 5. The "Status" Banner (Black Text)
+    ax.text((data_min + data_max)/2, 3.5, f"STATUS: {status_text}", fontsize=24, weight='bold', color='black', ha='center',
             bbox=dict(facecolor='white', edgecolor=status_color, boxstyle='round,pad=0.5', linewidth=2))
 
     # 6. FMV vs Ask Markers
     # FMV
-    ax.scatter(fmv, 2, color='black', s=250, zorder=10, marker='D') # Diamond shape for precision
+    ax.scatter(fmv, 2, color='black', s=250, zorder=10, marker='D') 
     ax.text(fmv, 2.4, f"VALUATION\n${fmv:,.0f}", ha="center", weight="bold", fontsize=11)
     
     # Our Ask
     ax.scatter(our_ask, 1, color=status_color, s=400, edgecolors='black', zorder=11, linewidth=2)
     ax.text(our_ask, 0.4, f"YOUR ASK\n${our_ask:,.0f}", ha="center", weight="bold", color=status_color, fontsize=13)
 
-    # 7. Header / Info Block inside the chart
-    # If a logo is uploaded, display it
-    if uploaded_logo is not None:
-        logo_img = Image.open(uploaded_logo)
-        logo_ax = fig.add_axes([0.78, 0.85, 0.18, 0.10]) # Top right
-        logo_ax.imshow(logo_img)
-        logo_ax.axis('off')
+    # 7. Logo on Graph (Top Right)
+    if os.path.exists("logo.png"):
+        try:
+            logo_img = Image.open("logo.png")
+            # Coordinates: [left, bottom, width, height] in figure fraction
+            logo_ax = fig.add_axes([0.75, 0.85, 0.15, 0.12]) 
+            logo_ax.imshow(logo_img)
+            logo_ax.axis('off')
+        except:
+            pass 
 
     # Footer Info
     info_str = (f"{dev_name} ({unit_no}) | {sqft:,} sqft | {u_type}\n"
@@ -154,14 +198,17 @@ if has_data:
     # Render
     st.pyplot(fig)
 
-    # --- DOWNLOAD BUTTON ---
-    # Save plot to memory to allow downloading
-    img_buffer = io.BytesIO()
-    fig.savefig(img_buffer, format='png', bbox_inches='tight', dpi=300)
-    st.download_button(
-        label="📥 Download Chart for Client",
-        data=img_buffer,
-        file_name=f"{dev_name}_Analysis.png",
-        mime="image/png",
-        use_container_width=True
-    )
+# --- SIDEBAR DOWNLOAD BUTTON (Placed at the end) ---
+with st.sidebar:
+    st.markdown("---")
+    if fig is not None:
+        # Save plot to memory
+        img_buffer = io.BytesIO()
+        fig.savefig(img_buffer, format='png', bbox_inches='tight', dpi=300)
+        st.download_button(
+            label="📥 Download Chart for PDF",
+            data=img_buffer,
+            file_name=f"{dev_name}_Analysis.png",
+            mime="image/png",
+            use_container_width=True
+        )
