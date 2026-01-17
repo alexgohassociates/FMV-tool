@@ -220,16 +220,16 @@ if has_data:
             pass 
 
     # B. Footer/Details Info (Top Left of Figure)
+    # Moved x from 0.02 to 0.03 to prevent cutoff
     info_str = (f"{dev_name} ({unit_no}) | {sqft:,} sqft | {u_type}\n"
                 f"Analysis by {prepared_by} | {today_date}")
     
-    ax.text(0.02, 0.95, info_str, transform=fig.transFigure, ha='left', va='top', fontsize=12, fontweight='bold',
+    ax.text(0.03, 0.95, info_str, transform=fig.transFigure, ha='left', va='top', fontsize=12, fontweight='bold',
             color='#555555', bbox=dict(facecolor='#f8f9fa', edgecolor='none', boxstyle='round,pad=0.5'))
 
     # C. Status Banner (Top Left, BELOW Details Info) - SMALLER SIZE
-    # Reduced fontsize from 24 to 19 (~20% smaller)
-    # Reduced pad from 0.5 to 0.4
-    ax.text(0.02, 0.87, f"STATUS: {status_text}", transform=fig.transFigure, ha='left', va='top', fontsize=19, 
+    # Moved x from 0.02 to 0.03 to prevent border cutoff
+    ax.text(0.03, 0.87, f"STATUS: {status_text}", transform=fig.transFigure, ha='left', va='top', fontsize=19, 
             weight='bold', color='black',
             bbox=dict(facecolor='white', edgecolor=status_color, boxstyle='round,pad=0.4', linewidth=2))
 
