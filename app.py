@@ -5,8 +5,8 @@ import os
 from datetime import datetime, timedelta, timezone
 from PIL import Image
 
-# 1. Page Configuration
-st.set_page_config(page_title="ProProperty Analyzer", layout="wide")
+# 1. Page Configuration - RENAMED TO CMA TOOL
+st.set_page_config(page_title="CMA Tool", layout="wide")
 
 # --- CSS: PERFECT "CLEAN" THEME & EQUAL SPACING ---
 st.markdown("""
@@ -156,7 +156,7 @@ if has_data:
     upper_5 = fmv * 1.05
     upper_10 = fmv * 1.10
     
-    # Thresholds (Quantum) - NEW
+    # Thresholds (Quantum)
     upper_5_quant = upper_5 * sqft
     upper_10_quant = upper_10 * sqft
     
@@ -239,7 +239,7 @@ if has_data:
 
     # 2. Zone Labels (WITH QUANTUM)
     y_labels_5 = -5.0 
-    y_labels_10 = -7.0 # Pushed down slightly
+    y_labels_10 = -7.0 
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
     
     ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.0f} PSF\n(${upper_5_quant:,.0f})", **style_dict)
@@ -263,12 +263,14 @@ if has_data:
     # FMV Marker
     ax.vlines(fmv, 2, -1.3, linestyles='dotted', colors='black', linewidth=2, zorder=5)
     ax.scatter(fmv, 2, color='black', s=100, zorder=10, marker='D')
+    # Updated Label with Quantum
     ax.text(fmv, -1.5, f"FMV\n${fmv:,.0f} PSF\n(${fmv_quant:,.0f})", 
             ha="center", va="top", weight="bold", fontsize=11, color='black')
 
     # ASKING Marker
     ax.vlines(our_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
     ax.scatter(our_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
+    # Updated Label with Quantum
     ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.0f} PSF\n(${ask_quant:,.0f})", 
             ha="center", va="top", weight="bold", fontsize=11, color='black')
 
