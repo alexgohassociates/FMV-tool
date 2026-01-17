@@ -192,14 +192,9 @@ if has_data:
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
-    # 5. The "Status" Banner (Bottom)
-    # Added zorder=12 to ensure it sits ON TOP of the drop lines
-    ax.text((data_min + data_max)/2, -3.2, f"STATUS: {status_text}", fontsize=24, weight='bold', color='black', ha='center', zorder=12,
-            bbox=dict(facecolor='white', edgecolor=status_color, boxstyle='round,pad=0.5', linewidth=2))
-
-    # 6. FMV vs Ask Markers (DOWNWARD DROP LINES)
+    # 5. FMV vs Ask Markers (DOWNWARD DROP LINES)
     # A) Valuation (FMV)
-    # Dotted line from Marker (2) down to bottom area (-4.8). zorder=5 puts it behind status banner.
+    # Dotted line from Marker (2) down to bottom area (-4.8)
     ax.vlines(fmv, 2, -4.8, linestyles='dotted', colors='black', linewidth=2, zorder=5)
     ax.scatter(fmv, 2, color='black', s=250, zorder=10, marker='D')
     # Label at the BOTTOM
@@ -212,7 +207,9 @@ if has_data:
     # Label at the BOTTOM
     ax.text(our_ask, -5.0, f"YOUR ASK\n${our_ask:,.0f}", ha="center", va="top", weight="bold", fontsize=13, color=status_color)
 
-    # 7. Logo on Graph (Top Right)
+    # 6. HEADERS & LOGO (Top Layer)
+    
+    # A. Logo on Graph (Top Right)
     if os.path.exists("logo.png"):
         try:
             logo_img = Image.open("logo.png")
@@ -222,16 +219,22 @@ if has_data:
         except:
             pass 
 
-    # Footer Info
+    # B. Footer/Details Info (Top Left of Figure)
     info_str = (f"{dev_name} ({unit_no}) | {sqft:,} sqft | {u_type}\n"
                 f"Analysis by {prepared_by} | {today_date}")
     
     ax.text(0.02, 0.95, info_str, transform=fig.transFigure, ha='left', va='top', fontsize=12, fontweight='bold',
             color='#555555', bbox=dict(facecolor='#f8f9fa', edgecolor='none', boxstyle='round,pad=0.5'))
 
+    # C. Status Banner (Top Left, BELOW Details Info)
+    # Placed at y=0.87 so it sits nicely under the 0.95 box
+    ax.text(0.02, 0.87, f"STATUS: {status_text}", transform=fig.transFigure, ha='left', va='top', fontsize=24, 
+            weight='bold', color='black',
+            bbox=dict(facecolor='white', edgecolor=status_color, boxstyle='round,pad=0.5', linewidth=2))
+
     # Final visual tweaks
     ax.axis('off')
-    # Adjusted limits: Less top space, more bottom space for new labels
+    # Adjusted limits: Wide space for downward lines
     ax.set_ylim(-6.0, 4.0) 
     ax.set_xlim(data_min - padding, data_max + (padding*0.5))
     
