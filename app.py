@@ -1,6 +1,8 @@
 import streamlit as st
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import io
+import os
 from datetime import datetime, timedelta, timezone
 
 # 1. Page Configuration & Custom Styling
@@ -27,7 +29,7 @@ with st.sidebar:
     st.divider()
     st.title("💰 Pricing Data")
     fmv    = st.number_input("Fair Market Value (PSF)", value=1150)
-    my_ask = st.number_input("Our Asking (PSF)", value=1250)
+    our_ask = st.number_input("Our Asking (PSF)", value=1250)
     
     st.divider()
     st.title("📊 Market Range")
@@ -39,7 +41,7 @@ with st.sidebar:
 # --- CALCULATIONS ---
 lower_5, upper_5 = fmv * 0.95, fmv * 1.05
 lower_10, upper_10 = fmv * 0.90, fmv * 1.10
-diff_pct = (my_ask - fmv) / fmv
+diff_pct = (our_ask - fmv) / fmv
 
 if abs(diff_pct) <= 0.05:
     status_text, status_color = "WITHIN 5% OF FMV", "#2ecc71"
@@ -51,15 +53,20 @@ else:
 tz_sg = timezone(timedelta(hours=8))
 gen_time = datetime.now(tz_sg).strftime("%d %b %Y, %H:%M (GMT+8)")
 
-# --- MAIN DASHBOARD ---
-st.title(f"🏢 {dev_name} | Market Analysis")
-st.caption(f"Unit: {unit_no} • {sqft} sqft • {u_type} | Data as of {gen_time}")
+# --- MAIN DASHBOARD HEADER ---
+col1, col2 = st.columns([4, 1])
+with col1:
+    st.title(f"🏢 {dev_name} | Market Analysis")
+    st.caption(f"Unit: {unit_no} • {sqft} sqft • {u_type} | Data as of {gen_time}")
+with col2:
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=150)
 
 m1, m2, m3, m4 = st.columns(4)
-m1.metric("Asking PSF", f"${my_ask:,.0f} PSF")
+m1.metric("Our Asking PSF", f"${our_ask:,.0f} PSF")
 m2.metric("Est. FMV", f"${fmv:,.0f} PSF")
 m3.metric("Price Variance", f"{diff_pct:+.1%}")
-m4.metric("Total Asking", f"${(my_ask * sqft):,.0f}")
+m4.metric("Total Asking", f"${(our_ask * sqft):,.0f}")
 
 st.divider()
 
@@ -76,7 +83,7 @@ ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', linewidth=6)
 ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', linewidth=6)
 
-# PSF Labels for Ranges
+# Labels
 ax.text(t_low, 2.15, f"${int(t_low)} PSF", ha='center', weight='bold', color='#1f77b4')
 ax.text(t_high, 2.15, f"${int(t_high)} PSF", ha='center', weight='bold', color='#1f77b4')
 ax.text(a_low, 0.75, f"${int(a_low)} PSF", ha='center', weight='bold', color='#34495e')
@@ -85,10 +92,10 @@ ax.text(a_high, 0.75, f"${int(a_high)} PSF", ha='center', weight='bold', color='
 # Indicators
 ax.scatter(fmv, 2, color='black', s=180, zorder=5)
 ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
-ax.scatter(my_ask, 1, color=status_color, s=300, edgecolors='black', zorder=6)
-ax.plot([my_ask, my_ask], [1, 0.4], color=status_color, linestyle='--', linewidth=2.5)
+ax.scatter(our_ask, 1, color=status_color, s=300, edgecolors='black', zorder=6)
+ax.plot([our_ask, our_ask], [1, 0.4], color=status_color, linestyle='--', linewidth=2.5)
 
-# Zone Boundaries Labels
+# Zone Boundaries
 boundary_y = -0.3
 ax.text(lower_10, boundary_y, f"-10%\n${int(lower_10)} PSF", ha='center', fontsize=9, color='grey')
 ax.text(lower_5, boundary_y, f"-5%\n${int(lower_5)} PSF", ha='center', fontsize=9, color='grey')
@@ -108,10 +115,18 @@ ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweig
 
 # Value Labels
 ax.text(fmv, 0.2, f'FMV\n${fmv:,.0f} PSF', ha='center', weight='bold', fontsize=11)
-ax.text(my_ask, 0.2, f'OUR ASK\n${my_ask:,.0f} PSF', ha='center', weight='bold', color=status_color, fontsize=12)
+ax.text(our_ask, 0.2, f'OUR ASK\n${our_ask:,.0f} PSF', ha='center', weight='bold', color=status_color, fontsize=12)
 
-# Positioning Title
+# Status Title
 ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
+
+# --- LOGO ON CHART (PDF/PNG) ---
+if os.path.exists("logo.png"):
+    logo_img = mpimg.imread("logo.png")
+    # Position: [x, y, width, height] in figure coordinates (0 to 1)
+    logo_ax = fig.add_axes([0.78, 0.82, 0.12, 0.12], anchor='NE', zorder=1)
+    logo_ax.imshow(logo_img)
+    logo_ax.axis('off')
 
 ax.axis('off')
 ax.set_ylim(-0.6, 3.7) 
@@ -122,7 +137,6 @@ st.pyplot(fig)
 # --- DOWNLOAD SECTION ---
 st.sidebar.divider()
 st.sidebar.subheader("Download Options")
-
 buf_png = io.BytesIO()
 fig.savefig(buf_png, format="png", bbox_inches='tight', dpi=300)
 st.sidebar.download_button(label="📥 Download as Image (PNG)", data=buf_png.getvalue(), file_name=f"Analysis_{dev_name}.png", mime="image/png")
@@ -130,5 +144,3 @@ st.sidebar.download_button(label="📥 Download as Image (PNG)", data=buf_png.ge
 buf_pdf = io.BytesIO()
 fig.savefig(buf_pdf, format="pdf", bbox_inches='tight')
 st.sidebar.download_button(label="📄 Download as PDF Report", data=buf_pdf.getvalue(), file_name=f"Analysis_{dev_name}.pdf", mime="application/pdf")
-
-st.success(f"Analysis complete for {dev_name}. Ready for client presentation!")
