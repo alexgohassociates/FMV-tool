@@ -67,6 +67,26 @@ st.markdown("""
         margin-bottom: 1rem !important;
     }
 
+    /* 8. CUSTOM FULLSCREEN BUTTON STYLING (White Box, Black Arrows) */
+    /* Target the fullscreen button container on hover */
+    button[data-testid="stStyledFullScreenButton"] {
+        background-color: #ffffff !important; /* White background */
+        border: 1px solid #e0e0e0 !important; /* Subtle grey border so it's visible */
+        box-shadow: 0px 2px 4px rgba(0,0,0,0.1) !important; /* Slight shadow for depth */
+        border-radius: 4px !important;
+    }
+    /* Target the SVG icon inside to make it black */
+    button[data-testid="stStyledFullScreenButton"] svg {
+        fill: #000000 !important; /* Black fill */
+        stroke: #000000 !important; /* Black outline */
+        color: #000000 !important;
+    }
+    /* Hover state for the new white button */
+    button[data-testid="stStyledFullScreenButton"]:hover {
+        background-color: #f0f2f6 !important; /* Light grey on hover */
+        border-color: #d1d5db !important;
+    }
+
     /* Hide Streamlit Header/Footer */
     header, footer {visibility: hidden;}
     </style>
