@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 # 1. Page Configuration
 st.set_page_config(page_title="ProProperty PSF Analyzer", layout="wide")
 
-# CSS for Compact Sidebar, Grey Input Boxes, and Professional UI
+# CSS for Compact Sidebar, Grey Input Boxes, and Matching Grey Download Button
 st.markdown("""
     <style>
     .stApp { background-color: white !important; }
@@ -22,6 +22,7 @@ st.markdown("""
         margin-bottom: -15px !important;
     }
 
+    /* Input Box Styling */
     .stTextInput input, .stNumberInput input {
         background-color: #eeeeee !important;
         color: #000000 !important;
@@ -31,6 +32,24 @@ st.markdown("""
         padding-bottom: 0px !important;
     }
 
+    /* MATCHING DOWNLOAD BUTTON STYLING */
+    div.stDownloadButton > button {
+        background-color: #eeeeee !important;
+        color: #000000 !important;
+        border: 1px solid #cccccc !important;
+        font-weight: 800 !important;
+        width: 100% !important;
+        border-radius: 5px !important;
+        transition: 0.3s;
+    }
+    
+    div.stDownloadButton > button:hover {
+        background-color: #dddddd !important;
+        border-color: #999999 !important;
+        color: #000000 !important;
+    }
+
+    /* Text and Labels Styling */
     [data-testid="stMetricLabel"] { color: #000000 !important; font-weight: 800 !important; font-size: 1.1rem !important; }
     [data-testid="stMetricValue"] { color: #1f77b4 !important; font-weight: 900 !important; }
     h1, h2, h3, p, span { color: #000000 !important; font-weight: 700 !important; }
@@ -56,7 +75,6 @@ with st.sidebar:
     u_type   = st.text_input("Unit Type", "3 Room")
     prepared_by = st.text_input("Prepared By", "Alex Goh")
     
-    # MOVED MARKET RANGE UP
     st.markdown("---")
     st.markdown("### Market Range")
     t_low  = st.number_input("Min Transacted", value=1000)
