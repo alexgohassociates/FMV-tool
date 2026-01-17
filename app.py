@@ -166,11 +166,11 @@ if has_data:
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.15)  # Green zone
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)  # Yellow zone
 
-    # 2. Zone Labels - STAGGERED HEIGHTS
-    # Level 3: 5% labels at y = -4.5
-    y_labels_5 = -4.5 
-    # Level 4: 10% labels at y = -5.8
-    y_labels_10 = -5.8
+    # 2. Zone Labels - STAGGERED HEIGHTS & MOVED DOWN
+    # Level 3: 5% labels at y = -5.0
+    y_labels_5 = -5.0 
+    # Level 4: 10% labels at y = -6.5
+    y_labels_10 = -6.5
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
     
     ax.text(lower_5, y_labels_5, f"-5%\n${lower_5:,.0f} PSF", **style_dict)
@@ -180,13 +180,13 @@ if has_data:
     ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF", **style_dict)
 
     # 3. Market Range Lines (Dumbbell Plot) - SMALLER MARKERS/LINES
-    # Transacted (y=2). Reduced markersize to 9, linewidth to 6.
-    ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=9, linewidth=6, solid_capstyle='round')
+    # Transacted (y=2). Reduced markersize to 7, linewidth to 5.
+    ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
     ax.text(t_low, 2.2, f"${t_low:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
     ax.text(t_high, 2.2, f"${t_high:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
 
-    # Asking (y=1). Reduced markersize to 9, linewidth to 6.
-    ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=9, linewidth=6, solid_capstyle='round')
+    # Asking (y=1). Reduced markersize to 7, linewidth to 5.
+    ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
     ax.text(a_low, 0.8, f"${a_low:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
     ax.text(a_high, 0.8, f"${a_high:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
 
@@ -195,19 +195,21 @@ if has_data:
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
-    # 5. FMV vs Ask Markers (STAGGERED & SMALLER SIZES)
+    # 5. FMV vs Ask Markers (STAGGERED, SMALLER SIZES & MOVED DOWN)
     
-    # Level 1: FMV at y = -1.2
-    ax.vlines(fmv, 2, -1.0, linestyles='dotted', colors='black', linewidth=2, zorder=5)
-    # Reduced size s to 150
-    ax.scatter(fmv, 2, color='black', s=150, zorder=10, marker='D')
-    ax.text(fmv, -1.2, f"FMV\n${fmv:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color='black')
+    # Level 1: FMV at y = -1.5
+    # Drop line ends at -1.3
+    ax.vlines(fmv, 2, -1.3, linestyles='dotted', colors='black', linewidth=2, zorder=5)
+    # Reduced size s to 100
+    ax.scatter(fmv, 2, color='black', s=100, zorder=10, marker='D')
+    ax.text(fmv, -1.5, f"FMV\n${fmv:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    # Level 2: ASKING at y = -2.5
-    ax.vlines(our_ask, 1, -2.3, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
-    # Reduced size s to 250
-    ax.scatter(our_ask, 1, color=status_color, s=250, edgecolors='black', zorder=11, linewidth=2)
-    ax.text(our_ask, -2.5, f"ASKING\n${our_ask:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color=status_color)
+    # Level 2: ASKING at y = -3.0
+    # Drop line ends at -2.8
+    ax.vlines(our_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
+    # Reduced size s to 180
+    ax.scatter(our_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
+    ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color=status_color)
 
     # 6. HEADERS & LOGO (Top Layer)
     
@@ -237,7 +239,8 @@ if has_data:
 
     # Final visual tweaks
     ax.axis('off')
-    ax.set_ylim(-7.0, 5.5) 
+    # Adjusted limits: Bottom limit to -8.0 for extra space
+    ax.set_ylim(-8.0, 5.5) 
     ax.set_xlim(data_min - padding, data_max + (padding*0.5))
     
     st.pyplot(fig)
