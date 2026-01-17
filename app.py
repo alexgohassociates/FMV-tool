@@ -126,7 +126,7 @@ if has_data:
     upper_5 = fmv * 1.05
     upper_10 = fmv * 1.10
     
-    # For chart labels
+    # For chart labels (we only use uppers now)
     lower_5 = fmv * 0.95
     lower_10 = fmv * 0.90
     
@@ -203,7 +203,6 @@ if has_data:
     x_max_limit = data_max + (padding*0.5)
 
     # 1. Shaded Zones - 3 ZONES LOGIC
-    # Restricted height (bottom half only)
     y_shade = [y_min_limit, -0.5] 
     
     # A) Green Zone: From far left to +5%
@@ -215,16 +214,13 @@ if has_data:
     # C) Red Zone: From +10% to far right
     ax.fill_betweenx(y_shade, upper_10, x_max_limit, color='#e74c3c', alpha=0.15)
 
-    # 2. Zone Labels
-    # We maintain the 5% and 10% markers for reference
+    # 2. Zone Labels (REMOVED -5% and -10% VALUES)
     y_labels_5 = -5.0 
     y_labels_10 = -6.5
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
     
-    ax.text(lower_5, y_labels_5, f"-5%\n${lower_5:,.0f} PSF", **style_dict)
+    # ONLY +5% and +10% labels remain
     ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.0f} PSF", **style_dict)
-    
-    ax.text(lower_10, y_labels_10, f"-10%\n${lower_10:,.0f} PSF", **style_dict)
     ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF", **style_dict)
 
     # 3. Market Range Lines (Dumbbell Plot)
@@ -247,9 +243,7 @@ if has_data:
     ax.scatter(fmv, 2, color='black', s=100, zorder=10, marker='D')
     ax.text(fmv, -1.5, f"FMV\n${fmv:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    # ASKING Marker
-    # Drop line and Circle use status_color (Green/Yellow/Red)
-    # Text uses 'black' for readability
+    # ASKING Marker (Text always black)
     ax.vlines(our_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
     ax.scatter(our_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
     ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color='black')
