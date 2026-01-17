@@ -14,26 +14,28 @@ st.markdown("""
     .stApp { background-color: white !important; }
     
     /* Force Header and Text to Black */
-    h1, h2, h3, [data-testid="stHeader"] { 
+    h1 { 
         color: #000000 !important; 
         font-weight: 800 !important; 
+        margin-bottom: 20px !important;
     }
     
-    /* Strict Left Alignment for Metrics */
+    /* Metric Alignment & Fix for Truncation (...) */
     [data-testid="stMetric"] {
         text-align: left !important;
-        padding-left: 0px !important;
+        padding-right: 15px !important;
     }
     [data-testid="stMetricLabel"] { 
         color: #444444 !important; 
         font-weight: 700 !important; 
-        font-size: 1rem !important;
-        justify-content: flex-start !important;
+        font-size: 0.95rem !important;
+        white-space: nowrap !important;
     }
     [data-testid="stMetricValue"] { 
         color: #000000 !important; 
         font-weight: 900 !important; 
-        font-size: 2.2rem !important;
+        font-size: 1.8rem !important; /* Slightly reduced to prevent overflow */
+        overflow: visible !important;
     }
 
     /* Sidebar Styling */
@@ -89,16 +91,16 @@ else:
 tz_sg = timezone(timedelta(hours=8))
 today_date = datetime.now(tz_sg).strftime("%d/%m/%Y")
 
-# --- MAIN DASHBOARD (Left Aligned) ---
+# --- MAIN DASHBOARD ---
 st.title(f"{dev_name}")
 
-# Metrics Section (Anchor to the left)
-m1, m2, m3, spacer = st.columns([1, 1, 1, 3])
+# Updated Column Ratios to prevent "..." (Using 1.5 instead of 1)
+m1, m2, m3, spacer = st.columns([1.5, 1.5, 1.5, 2.5])
 m1.metric("Est FMV (PSF)", f"${fmv:,.0f} PSF" if fmv else "-")
 m2.metric("Our Asking (PSF)", f"${our_ask:,.0f} PSF" if our_ask else "-")
 m3.metric("Variance", f"{diff_pct:+.1%}" if has_data else "-")
 
-q1, q2, q3, spacer2 = st.columns([1, 1, 1, 3])
+q1, q2, q3, spacer2 = st.columns([1.5, 1.5, 1.5, 2.5])
 q1.metric("Est FMV (Quantum)", f"${(fmv * sqft):,.0f}" if (fmv and valid_sqft) else "-")
 q2.metric("Our Asking (Quantum)", f"${(our_ask * sqft):,.0f}" if (our_ask and valid_sqft) else "-")
 
@@ -114,31 +116,31 @@ if has_data:
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
-    # Variance Labels - Fixed overlap and non-slanted
+    # Variance Labels (Non-slanted)
     y_h, y_l = -0.9, -1.3
-    ax.text(lower_10, y_h, f"-10%\n${lower_10:,.0f} PSF", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
-    ax.text(lower_5, y_l, f"-5%\n${lower_5:,.0f} PSF", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
-    ax.text(upper_5, y_h, f"+5%\n${upper_5:,.0f} PSF", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
-    ax.text(upper_10, y_l, f"+10%\n${upper_10:,.0f} PSF", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
+    ax.text(lower_10, y_h, f"-10%\n${lower_10:,.0f}", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
+    ax.text(lower_5, y_l, f"-5%\n${lower_5:,.0f}", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
+    ax.text(upper_5, y_h, f"+5%\n${upper_5:,.0f}", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
+    ax.text(upper_10, y_l, f"+10%\n${upper_10:,.0f}", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
 
-    # Horizontal Lines
+    # Market Lines
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=8, linewidth=5)
 
     data_min = min(t_low, a_low, lower_10)
     data_max = max(t_high, a_high, upper_10)
 
-    # Side labels - Pushed left to match Header
+    # Adjusted Side labels to stay left
     ax.text(data_min - 40, 2, 'TRANSACTED PSF', weight='bold', ha='right', va='center', fontsize=11)
     ax.text(data_min - 40, 1, 'CURRENT ASKING PSF', weight='bold', ha='right', va='center', fontsize=11)
 
-    # Markers and Status
+    # Markers
     ax.scatter(fmv, 2, color='black', s=150, zorder=5)
     ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
     ax.scatter(our_ask, 1, color=status_color, s=250, edgecolors='black', zorder=6)
     ax.plot([our_ask, our_ask], [1, -0.1], color=status_color, linestyle='--', linewidth=2)
 
-    # Floating Property Details (Aligned Right)
+    # Details Box (Floating Right)
     box_txt = f"Dev: {dev_name}\nUnit: {unit_no}\nSize: {sqft} sqft\nType: {u_type}\nBy: {prepared_by}\nDate: {today_date}"
     ax.text(0.98, 0.82, box_txt, transform=ax.transAxes, ha='right', va='top', fontsize=10, fontweight='bold',
             linespacing=1.6, bbox=dict(facecolor='white', edgecolor='#cccccc', boxstyle='round,pad=0.8'))
@@ -148,6 +150,7 @@ if has_data:
         logo_ax.imshow(mpimg.imread("logo.png"))
         logo_ax.axis('off')
 
+    # Status & PSF Labels
     ax.text((data_min + data_max)/2, 2.7, f"STATUS: {status_text}", fontsize=22, weight='bold', color=status_color, ha='center')
     ax.text(fmv, 0.2, f"FMV\n${fmv:,.0f} PSF", ha="center", weight="bold", fontsize=11)
     ax.text(our_ask, -0.4, f"OUR ASK\n${our_ask:,.0f} PSF", ha="center", weight="bold", color=status_color, fontsize=12)
