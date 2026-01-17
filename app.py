@@ -28,8 +28,7 @@ st.markdown("""
 
     /* 4. Sidebar Inputs -> Light Grey Box with Black Text */
     [data-testid="stSidebar"] .stTextInput input, 
-    [data-testid="stSidebar"] .stNumberInput input,
-    [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {
+    [data-testid="stSidebar"] .stNumberInput input {
         color: #000000 !important;
         background-color: #f0f2f6 !important;
         border-color: #d1d5db !important;
@@ -67,7 +66,7 @@ st.markdown("""
         margin-top: 1rem !important;
         margin-bottom: 1rem !important;
     }
-    
+
     /* Hide Streamlit Header/Footer */
     header, footer {visibility: hidden;}
     </style>
@@ -95,10 +94,6 @@ with st.sidebar:
     if os.path.exists("logo.png"):
         st.image("logo.png", use_container_width=True)
     
-    # --- GRAPH MODE TOGGLE ---
-    graph_mode = st.radio("Display Graph In:", ["PSF", "Quantum"], horizontal=True)
-    st.markdown("---")
-
     # 2. Property Details
     st.markdown("### Property Details")
     dev_name = st.text_input("Development / Address", "")
@@ -109,23 +104,23 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # 3. Market Data (Inputs always in PSF for simplicity, converted later)
+    # 3. Market Data
     st.markdown("### Market Data (PSF)")
     t1 = st.number_input("Lowest Transacted (PSF)", value=None, step=10)
     t2 = st.number_input("Highest Transacted (PSF)", value=None, step=10)
     
     if t1 is not None and t2 is not None:
-        t_low_psf, t_high_psf = min(t1, t2), max(t1, t2)
+        t_low, t_high = min(t1, t2), max(t1, t2)
     else:
-        t_low_psf, t_high_psf = 0, 0
+        t_low, t_high = 0, 0
     
     a1 = st.number_input("Lowest Asking (PSF)", value=None, step=10)
     a2 = st.number_input("Highest Asking (PSF)", value=None, step=10)
     
     if a1 is not None and a2 is not None:
-        a_low_psf, a_high_psf = min(a1, a2), max(a1, a2)
+        a_low, a_high = min(a1, a2), max(a1, a2)
     else:
-        a_low_psf, a_high_psf = 0, 0
+        a_low, a_high = 0, 0
     
     st.markdown("---")
     st.markdown("### Valuation & Price")
@@ -143,10 +138,10 @@ with st.sidebar:
         st.number_input("Ask (Quantum)", value=None, step=1000.0, key="ask_quantum", on_change=calc_ask_psf)
 
 # --- CALCULATIONS ---
-fmv_val_psf = st.session_state.fmv_psf
-ask_val_psf = st.session_state.ask_psf
+fmv_val = st.session_state.fmv_psf
+ask_val = st.session_state.ask_psf
 
-required_values = [sqft, fmv_val_psf, ask_val_psf, t1, t2, a1, a2]
+required_values = [sqft, fmv_val, ask_val, t1, t2, a1, a2]
 has_data = all(v is not None and v > 0 for v in required_values)
 
 tz_sg = timezone(timedelta(hours=8))
@@ -154,61 +149,35 @@ today_date = datetime.now(tz_sg).strftime("%d %b %Y")
 
 if has_data:
     sqft = float(sqft)
+    fmv = float(fmv_val)
+    our_ask = float(ask_val)
     
-    # 1. Base Variables (PSF)
-    fmv_psf = float(fmv_val_psf)
-    ask_psf = float(ask_val_psf)
+    # Thresholds
+    upper_5 = fmv * 1.05
+    upper_10 = fmv * 1.10
     
-    # 2. Quantum Conversions
-    t_low_quant = t_low_psf * sqft
-    t_high_quant = t_high_psf * sqft
-    a_low_quant = a_low_psf * sqft
-    a_high_quant = a_high_psf * sqft
-    fmv_quant = fmv_psf * sqft
-    ask_quant = ask_psf * sqft
-
-    # 3. Determine Plotting Variables based on Toggle
-    if graph_mode == "PSF":
-        plot_t_low = t_low_psf
-        plot_t_high = t_high_psf
-        plot_a_low = a_low_psf
-        plot_a_high = a_high_psf
-        plot_fmv = fmv_psf
-        plot_ask = ask_psf
-        label_suffix = " PSF"
-    else:
-        plot_t_low = t_low_quant
-        plot_t_high = t_high_quant
-        plot_a_low = a_low_quant
-        plot_a_high = a_high_quant
-        plot_fmv = fmv_quant
-        plot_ask = ask_quant
-        label_suffix = "" # No suffix for Quantum, just $
-
-    # 4. Thresholds (Calculated on the plotting value)
-    upper_5 = plot_fmv * 1.05
-    upper_10 = plot_fmv * 1.10
+    diff_pct = (our_ask - fmv) / fmv
     
-    # Percentage Diff is same for both
-    diff_pct = (ask_psf - fmv_psf) / fmv_psf
+    # Quantum Calculation for Display
+    fmv_quant = fmv * sqft
+    ask_quant = our_ask * sqft
     
     # Status Logic
     if diff_pct <= 0.05:
         status_text = "Asking ≤ +5% of FMV"
-        status_color = "#2ecc71"
+        status_color = "#2ecc71" # Green
     elif diff_pct <= 0.10:
         status_text = "Asking +5% to +10% of FMV"
-        status_color = "#f1c40f"
+        status_color = "#f1c40f" # Yellow
     else:
         status_text = "Asking > +10% of FMV"
-        status_color = "#e74c3c"
-
+        status_color = "#e74c3c" # Red
 else:
     status_text = "Waiting for Data..."
     status_color = "#bdc3c7"
     diff_pct = 0
-    fmv_psf, ask_psf = 0, 0
     fmv_quant, ask_quant = 0, 0
+    fmv, our_ask = 0, 0
 
 # --- DASHBOARD LAYOUT ---
 display_dev_name = dev_name if dev_name else "Development Name"
@@ -219,10 +188,9 @@ display_u_type = u_type if u_type else "-"
 st.title(f"{display_dev_name}")
 st.caption(f"Unit: {display_unit_no} | Size: {display_sqft} sqft | Type: {display_u_type}")
 
-# Metrics Row
 c1, c2, c3 = st.columns(3)
-c1.metric("FMV (PSF)", f"${fmv_psf:,.0f} psf" if has_data else "-")
-c2.metric("Asking (PSF)", f"${ask_psf:,.0f} psf" if has_data else "-")
+c1.metric("FMV (PSF)", f"${fmv:,.0f} psf" if has_data else "-")
+c2.metric("Asking (PSF)", f"${our_ask:,.0f} psf" if has_data else "-")
 if has_data:
     c3.metric("Variance", f"{diff_pct:+.1%}", delta_color="inverse")
 else:
@@ -241,8 +209,7 @@ if has_data:
     fig, ax = plt.subplots(figsize=(12, 7), dpi=300)
     fig.patch.set_facecolor('white')
     
-    # Use the selected 'plot_' variables
-    all_values = [plot_t_low, plot_t_high, plot_a_low, plot_a_high, plot_fmv, plot_ask, upper_10]
+    all_values = [t_low, t_high, a_low, a_high, fmv, our_ask, upper_10]
     data_min = min(all_values)
     data_max = max(all_values)
     data_range = data_max - data_min
@@ -256,11 +223,11 @@ if has_data:
     # 1. Shaded Zones
     y_shade = [y_min_limit, -0.5] 
     
-    # Green Zone (< +5%)
+    # Green (< +5%)
     ax.fill_betweenx(y_shade, x_min_limit, upper_5, color='#2ecc71', alpha=0.15)
-    # Yellow Zone (+5% to +10%)
+    # Yellow (+5% to +10%)
     ax.fill_betweenx(y_shade, upper_5, upper_10, color='#f1c40f', alpha=0.15)
-    # Red Zone (> +10%)
+    # Red (> +10%)
     ax.fill_betweenx(y_shade, upper_10, x_max_limit, color='#e74c3c', alpha=0.15)
 
     # 2. Zone Labels
@@ -268,37 +235,39 @@ if has_data:
     y_labels_10 = -6.5
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
     
-    ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.0f}{label_suffix}", **style_dict)
-    ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f}{label_suffix}", **style_dict)
+    ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.0f} PSF", **style_dict)
+    ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF", **style_dict)
 
-    # 3. Market Range Lines
-    # Transacted
-    ax.plot([plot_t_low, plot_t_high], [2, 2], color='#3498db', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
-    ax.text(plot_t_low, 2.45, f"${plot_t_low:,.0f}{label_suffix}", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
-    ax.text(plot_t_high, 2.45, f"${plot_t_high:,.0f}{label_suffix}", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
+    # 3. Lines
+    ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
+    ax.text(t_low, 2.45, f"${t_low:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
+    ax.text(t_high, 2.45, f"${t_high:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
 
-    # Asking
-    ax.plot([plot_a_low, plot_a_high], [1, 1], color='#34495e', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
-    ax.text(plot_a_low, 0.55, f"${plot_a_low:,.0f}{label_suffix}", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
-    ax.text(plot_a_high, 0.55, f"${plot_a_high:,.0f}{label_suffix}", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
+    ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
+    ax.text(a_low, 0.55, f"${a_low:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
+    ax.text(a_high, 0.55, f"${a_high:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
 
-    # 4. Row Labels
     text_x_pos = data_min - (data_range * 0.05) 
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
-    # 5. FMV vs Ask Markers
-    # FMV
-    ax.vlines(plot_fmv, 2, -1.3, linestyles='dotted', colors='black', linewidth=2, zorder=5)
-    ax.scatter(plot_fmv, 2, color='black', s=100, zorder=10, marker='D')
-    ax.text(plot_fmv, -1.5, f"FMV\n${plot_fmv:,.0f}{label_suffix}", ha="center", va="top", weight="bold", fontsize=11, color='black')
+    # 4. FMV vs Ask Markers (WITH QUANTUM IN BRACKETS)
+    
+    # FMV Marker
+    ax.vlines(fmv, 2, -1.3, linestyles='dotted', colors='black', linewidth=2, zorder=5)
+    ax.scatter(fmv, 2, color='black', s=100, zorder=10, marker='D')
+    # Updated Label with Quantum
+    ax.text(fmv, -1.5, f"FMV\n${fmv:,.0f} PSF\n(${fmv_quant:,.0f})", 
+            ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    # ASKING
-    ax.vlines(plot_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
-    ax.scatter(plot_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
-    ax.text(plot_ask, -3.0, f"ASKING\n${plot_ask:,.0f}{label_suffix}", ha="center", va="top", weight="bold", fontsize=11, color='black')
+    # ASKING Marker
+    ax.vlines(our_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
+    ax.scatter(our_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
+    # Updated Label with Quantum
+    ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.0f} PSF\n(${ask_quant:,.0f})", 
+            ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    # 6. HEADERS
+    # 5. Header / Footer
     if os.path.exists("logo.png"):
         try:
             logo_img = Image.open("logo.png")
@@ -336,15 +305,13 @@ with st.sidebar:
         safe_sqft = str(int(sqft)) if (sqft and sqft > 0) else "0"
         safe_agent = prepared_by if prepared_by else "Agent"
         
-        # Filename indicates Mode (PSF vs Quantum)
-        mode_str = "Quantum" if graph_mode == "Quantum" else "PSF"
-        final_filename = f"{safe_dev}-{safe_unit}-{safe_sqft}-{mode_str}-{filename_date}.pdf"
+        final_filename = f"{safe_dev}-{safe_unit}-{safe_sqft}-{filename_date}-{safe_agent}.pdf"
 
         pdf_buffer = io.BytesIO()
         fig.savefig(pdf_buffer, format='pdf', bbox_inches='tight', dpi=300)
         
         st.download_button(
-            label=f"📥 Download ({graph_mode}) PDF",
+            label="📥 Download Analysis as PDF",
             data=pdf_buffer,
             file_name=final_filename,
             mime="application/pdf",
