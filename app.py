@@ -8,7 +8,7 @@ from PIL import Image
 # 1. Page Configuration
 st.set_page_config(page_title="ProProperty PSF Analyzer", layout="wide")
 
-# --- CSS: PERFECT "CLEAN" THEME ---
+# --- CSS: PERFECT "CLEAN" THEME & EQUAL SPACING ---
 st.markdown("""
     <style>
     /* 1. Main App Background -> White */
@@ -30,26 +30,44 @@ st.markdown("""
     [data-testid="stSidebar"] .stTextInput input, 
     [data-testid="stSidebar"] .stNumberInput input {
         color: #000000 !important;
-        background-color: #f0f2f6 !important; /* Matches standard light input */
+        background-color: #f0f2f6 !important;
         border-color: #d1d5db !important;
     }
     
     /* 5. Sidebar Labels -> Black */
     [data-testid="stSidebar"] label {
         color: #000000 !important;
+        margin-bottom: 2px !important; /* Tighten label to input */
     }
 
-    /* 6. DOWNLOAD BUTTON -> Match Input Fields Exactly */
+    /* 6. DOWNLOAD BUTTON -> Match Input Fields */
     div.stDownloadButton > button {
-        background-color: #f0f2f6 !important; /* Light Grey */
-        color: #000000 !important;             /* Black Text */
-        border: 1px solid #d1d5db !important;  /* Grey Border */
-        width: 100%;                           /* Full Width */
+        background-color: #f0f2f6 !important;
+        color: #000000 !important;
+        border: 1px solid #d1d5db !important;
+        width: 100%;
     }
     div.stDownloadButton > button:hover {
-        background-color: #e5e7eb !important;  /* Slightly darker on hover */
+        background-color: #e5e7eb !important;
         border-color: #9ca3af !important;
         color: #000000 !important;
+    }
+
+    /* 7. EQUAL SPACING FIX */
+    /* Remove default Streamlit vertical gaps and set our own */
+    [data-testid="stSidebar"] .stElementContainer {
+        margin-bottom: 0.8rem !important; /* Standard gap between every item */
+    }
+    /* Tighten up the headers so they don't have huge gaps above them */
+    [data-testid="stSidebar"] h3 {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.2rem !important;
+        margin-bottom: 0 !important;
+    }
+    /* Adjust the divider line to float exactly in the middle of the gap */
+    [data-testid="stSidebar"] hr {
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
     }
 
     /* Hide Streamlit Header/Footer */
@@ -65,7 +83,7 @@ with st.sidebar:
     
     # 2. Property Details
     st.markdown("### Property Details")
-    dev_name = st.text_input("Development", "Kent Ridge Hill Residences")
+    dev_name = st.text_input("Development / Address", "Kent Ridge Hill Residences")
     unit_no  = st.text_input("Unit", "02-57")
     sqft     = st.number_input("Size (sqft)", value=1079)
     u_type   = st.text_input("Type", "3 Bedroom Premium")
@@ -75,7 +93,6 @@ with st.sidebar:
     
     # 3. Market Data
     st.markdown("### Market Data")
-    # Logic to auto-swap if user enters High in Low field
     t1, t2 = st.number_input("Lowest Transacted (PSF)", value=1000), st.number_input("Highest Transacted (PSF)", value=1200)
     t_low, t_high = min(t1, t2), max(t1, t2)
     
@@ -115,7 +132,7 @@ else:
     fmv_quantum, ask_quantum = 0, 0
 
 # --- DASHBOARD LAYOUT ---
-# Title (Clean, no emoticons)
+# Title
 st.title(f"{dev_name}")
 st.caption(f"Unit: {unit_no} | Size: {sqft:,} sqft | Type: {u_type}")
 
@@ -133,7 +150,6 @@ c5.metric("Asking (Quantum)", f"${ask_quantum:,.0f}")
 st.divider()
 
 # --- PLOTTING ENGINE ---
-# We define fig outside so we can access it for the download button later
 fig = None
 
 if has_data:
@@ -146,7 +162,7 @@ if has_data:
     data_min = min(all_values)
     data_max = max(all_values)
     data_range = data_max - data_min
-    padding = data_range * 0.25 # Dynamic padding
+    padding = data_range * 0.25 
 
     # 1. Shaded Zones
     ax.axvspan(lower_10, lower_5, color='#f1c40f', alpha=0.1)  # Yellow zone
@@ -162,9 +178,7 @@ if has_data:
     ax.text(upper_10, y_labels - 0.7, f"+10%\n${upper_10:,.0f}", **style_dict)
 
     # 3. Market Range Lines (Dumbbell Plot)
-    # Transacted
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=12, linewidth=8, solid_capstyle='round')
-    # Asking
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=12, linewidth=8, solid_capstyle='round')
 
     # 4. Labels for Lines
@@ -172,24 +186,21 @@ if has_data:
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
-    # 5. The "Status" Banner (Black Text)
+    # 5. The "Status" Banner
     ax.text((data_min + data_max)/2, 3.5, f"STATUS: {status_text}", fontsize=24, weight='bold', color='black', ha='center',
             bbox=dict(facecolor='white', edgecolor=status_color, boxstyle='round,pad=0.5', linewidth=2))
 
     # 6. FMV vs Ask Markers
-    # FMV
     ax.scatter(fmv, 2, color='black', s=250, zorder=10, marker='D') 
     ax.text(fmv, 2.4, f"VALUATION\n${fmv:,.0f}", ha="center", weight="bold", fontsize=11)
     
-    # Our Ask
     ax.scatter(our_ask, 1, color=status_color, s=400, edgecolors='black', zorder=11, linewidth=2)
     ax.text(our_ask, 0.4, f"YOUR ASK\n${our_ask:,.0f}", ha="center", weight="bold", color=status_color, fontsize=13)
 
-    # 7. Logo on Graph (Top Right)
+    # 7. Logo on Graph
     if os.path.exists("logo.png"):
         try:
             logo_img = Image.open("logo.png")
-            # Coordinates: [left, bottom, width, height] in figure fraction
             logo_ax = fig.add_axes([0.75, 0.85, 0.15, 0.12]) 
             logo_ax.imshow(logo_img)
             logo_ax.axis('off')
@@ -208,14 +219,12 @@ if has_data:
     ax.set_ylim(-3.0, 5.0)
     ax.set_xlim(data_min - padding, data_max + (padding*0.5))
     
-    # Render
     st.pyplot(fig)
 
-# --- SIDEBAR DOWNLOAD BUTTON (Placed at the very end) ---
+# --- SIDEBAR DOWNLOAD BUTTON ---
 with st.sidebar:
     st.markdown("---")
     if fig is not None:
-        # Save plot to memory
         img_buffer = io.BytesIO()
         fig.savefig(img_buffer, format='png', bbox_inches='tight', dpi=300)
         st.download_button(
