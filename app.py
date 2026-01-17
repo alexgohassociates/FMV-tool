@@ -117,7 +117,7 @@ st.divider()
 
 # --- PLOTTING ---
 if not has_data:
-    st.info("📊 **Graph will be generated once all values are entered.**")
+    st.info("📊 **Graph will be generated once Market Values are entered.**")
     fig_empty, ax_empty = plt.subplots(figsize=(16, 2))
     ax_empty.axis('off')
     st.pyplot(fig_empty)
@@ -130,11 +130,12 @@ else:
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
-    # Zone Range Labels (THE MISSING PSF RANGES)
-    ax.text(lower_10, -0.6, f"-$10%\n${lower_10:,.0f}", ha='center', fontsize=9, color='#7f8c8d')
-    ax.text(lower_5, -0.6, f"-$5%\n${lower_5:,.0f}", ha='center', fontsize=9, color='#7f8c8d')
-    ax.text(upper_5, -0.6, f"+$5%\n${upper_5:,.0f}", ha='center', fontsize=9, color='#7f8c8d')
-    ax.text(upper_10, -0.6, f"+$10%\n${upper_10:,.0f}", ha='center', fontsize=9, color='#7f8c8d')
+    # Zone Range Labels - Moved Lower and Cleaned Up
+    # Use y=-0.8 for more clearance
+    ax.text(lower_10, -0.8, f"-10%\n${lower_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    ax.text(lower_5, -0.8, f"-5%\n${lower_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    ax.text(upper_5, -0.8, f"+5%\n${upper_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    ax.text(upper_10, -0.8, f"+10%\n${upper_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
 
     # Data Lines
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
@@ -171,7 +172,7 @@ else:
         logo_ax.axis('off')
 
     ax.axis('off')
-    ax.set_ylim(-1.0, 3.8) 
+    ax.set_ylim(-1.2, 3.8) # Extended y-limit slightly to fit lower labels
     ax.set_xlim(label_x - 20, max(t_high, a_high, fmv, upper_10) + 120)
 
     st.pyplot(fig)
