@@ -166,10 +166,9 @@ if has_data:
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.15)  # Green zone
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)  # Yellow zone
 
-    # 2. Zone Labels - STAGGERED HEIGHTS & MOVED DOWN
-    # Level 3: 5% labels at y = -5.0
+    # 2. Zone Labels (Level 3 & 4)
+    # y = -5.0 and y = -6.5
     y_labels_5 = -5.0 
-    # Level 4: 10% labels at y = -6.5
     y_labels_10 = -6.5
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
     
@@ -179,41 +178,34 @@ if has_data:
     ax.text(lower_10, y_labels_10, f"-10%\n${lower_10:,.0f} PSF", **style_dict)
     ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF", **style_dict)
 
-    # 3. Market Range Lines (Dumbbell Plot) - SMALLER MARKERS/LINES
-    # Transacted (y=2). Reduced markersize to 7, linewidth to 5.
+    # 3. Market Range Lines (Dumbbell Plot)
+    # Transacted (y=2). Labels moved UP to 2.45 to clear the Diamond.
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
-    ax.text(t_low, 2.2, f"${t_low:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
-    ax.text(t_high, 2.2, f"${t_high:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
+    ax.text(t_low, 2.45, f"${t_low:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
+    ax.text(t_high, 2.45, f"${t_high:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
 
-    # Asking (y=1). Reduced markersize to 7, linewidth to 5.
+    # Asking (y=1). Labels moved DOWN to 0.55 to clear the Circle.
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
-    ax.text(a_low, 0.8, f"${a_low:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
-    ax.text(a_high, 0.8, f"${a_high:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
+    ax.text(a_low, 0.55, f"${a_low:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
+    ax.text(a_high, 0.55, f"${a_high:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
 
     # 4. Labels for Lines
     text_x_pos = data_min - (data_range * 0.05) 
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
-    # 5. FMV vs Ask Markers (STAGGERED, SMALLER SIZES & MOVED DOWN)
-    
-    # Level 1: FMV at y = -1.5
-    # Drop line ends at -1.3
+    # 5. FMV vs Ask Markers (Level 1 & 2)
+    # A) FMV (y = -1.5)
     ax.vlines(fmv, 2, -1.3, linestyles='dotted', colors='black', linewidth=2, zorder=5)
-    # Reduced size s to 100
     ax.scatter(fmv, 2, color='black', s=100, zorder=10, marker='D')
     ax.text(fmv, -1.5, f"FMV\n${fmv:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    # Level 2: ASKING at y = -3.0
-    # Drop line ends at -2.8
+    # B) Your Ask (y = -3.0)
     ax.vlines(our_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
-    # Reduced size s to 180
     ax.scatter(our_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
     ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color=status_color)
 
     # 6. HEADERS & LOGO (Top Layer)
-    
-    # A. Logo on Graph (Top Right)
     if os.path.exists("logo.png"):
         try:
             logo_img = Image.open("logo.png")
@@ -223,23 +215,19 @@ if has_data:
         except:
             pass 
 
-    # B. Footer/Details Info (Top Left)
+    # Footer/Details Info
     info_str = (f"{dev_name} ({unit_no}) | {sqft:,} sqft | {u_type}\n"
                 f"Analysis by {prepared_by} | {today_date}")
-    
     ax.text(0.03, 0.91, info_str, transform=fig.transFigure, ha='left', va='center', fontsize=10, fontweight='bold',
             color='#555555', bbox=dict(facecolor='#f8f9fa', edgecolor='none', boxstyle='round,pad=0.5'))
 
-    # C. Status Banner (Top Left)
-    # 1. The Dot
+    # Status Banner
     ax.scatter([0.04], [0.82], s=180, color=status_color, marker='o', transform=fig.transFigure, clip_on=False, zorder=20)
-    # 2. The Text
     ax.text(0.055, 0.82, f"STATUS: {status_text}", transform=fig.transFigure, ha='left', va='center',
             fontsize=12, weight='bold', color='#555555')
 
     # Final visual tweaks
     ax.axis('off')
-    # Adjusted limits: Bottom limit to -8.0 for extra space
     ax.set_ylim(-8.0, 5.5) 
     ax.set_xlim(data_min - padding, data_max + (padding*0.5))
     
