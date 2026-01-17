@@ -8,59 +8,67 @@ from datetime import datetime, timedelta, timezone
 # 1. Page Configuration
 st.set_page_config(page_title="ProProperty PSF Analyzer", layout="wide")
 
-# CSS for Grey Input Boxes, Black Sidebar Text, and Clean UI
+# CSS for Compact Sidebar, Grey Input Boxes, and Professional UI
 st.markdown("""
     <style>
     .stApp { background-color: white !important; }
     
-    /* Metrics Styling */
-    [data-testid="stMetricLabel"] { color: #000000 !important; font-weight: 800 !important; font-size: 1.1rem !important; }
-    [data-testid="stMetricValue"] { color: #1f77b4 !important; font-weight: 900 !important; }
-    
-    /* Main Content Text */
-    h1, h2, h3, p, span { color: #000000 !important; font-weight: 700 !important; }
-    
-    /* Sidebar Styling: Black Labels and Grey Input Boxes */
-    section[data-testid="stSidebar"] { background-color: #f8f9fb !important; }
-    section[data-testid="stSidebar"] .stMarkdown p, 
-    section[data-testid="stSidebar"] label { 
-        color: #000000 !important; 
-        font-weight: 800 !important; 
+    /* COMPACT SIDEBAR CODE */
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+        gap: 0rem !important;
     }
     
-    /* Input Box Styling */
+    div[data-testid="stTextSelectionContainer"] > div {
+        margin-bottom: -15px !important;
+    }
+
     .stTextInput input, .stNumberInput input {
         background-color: #eeeeee !important;
         color: #000000 !important;
         border: 1px solid #cccccc !important;
+        height: 32px !important;
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
     }
 
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
+    [data-testid="stMetricLabel"] { color: #000000 !important; font-weight: 800 !important; font-size: 1.1rem !important; }
+    [data-testid="stMetricValue"] { color: #1f77b4 !important; font-weight: 900 !important; }
+    h1, h2, h3, p, span { color: #000000 !important; font-weight: 700 !important; }
+    
+    section[data-testid="stSidebar"] { background-color: #f8f9fb !important; }
+    section[data-testid="stSidebar"] .stMarkdown p, 
+    section[data-testid="stSidebar"] label { 
+        color: #000000 !important; 
+        font-weight: 800 !important;
+        font-size: 0.85rem !important;
+    }
+
+    header, footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# --- SIDEBAR: CONTROLS ---
+# --- SIDEBAR: COMPACT CONTROLS ---
 with st.sidebar:
-    st.title("Report Details")
+    st.markdown("### Report Details")
     dev_name = st.text_input("Development", "KRHR")
     unit_no  = st.text_input("Unit Number", "02-57")
     sqft     = st.number_input("Size (sqft)", value=1079)
     u_type   = st.text_input("Unit Type", "3 Room")
     prepared_by = st.text_input("Prepared By", "Alex Goh")
     
-    st.divider()
-    st.title("Pricing Data")
+    # MOVED MARKET RANGE UP
+    st.markdown("---")
+    st.markdown("### Market Range")
+    t_low  = st.number_input("Min Transacted", value=1000)
+    t_high = st.number_input("Max Transacted", value=1200)
+    a_low  = st.number_input("Min Asking", value=1050)
+    a_high = st.number_input("Max Asking", value=1300)
+
+    st.markdown("---")
+    st.markdown("### Pricing Data")
     fmv    = st.number_input("Fair Market Value (PSF)", value=1150)
     our_ask = st.number_input("Our Asking (PSF)", value=1250)
     
-    st.divider()
-    st.title("Market Range")
-    t_low  = st.number_input("Min Transacted PSF", value=1000)
-    t_high = st.number_input("Max Transacted PSF", value=1200)
-    a_low  = st.number_input("Min Asking PSF", value=1050)
-    a_high = st.number_input("Max Asking PSF", value=1300)
-
 # --- CALCULATIONS ---
 lower_5, upper_5 = fmv * 0.95, fmv * 1.05
 lower_10, upper_10 = fmv * 0.90, fmv * 1.10
@@ -73,10 +81,10 @@ elif abs(diff_pct) <= 0.10:
 else:
     status_text, status_color = "MORE THAN 10% OF FMV", "#e74c3c"
 
-# Date handling (Date only, no time)
 tz_sg = timezone(timedelta(hours=8))
-today_date = datetime.now(tz_sg).strftime("%d %b %Y")
-file_date = datetime.now(tz_sg).strftime("%Y%m%d")
+now = datetime.now(tz_sg)
+today_date = now.strftime("%d %b %Y")
+file_date = now.strftime("%Y%m%d")
 
 # --- MAIN DASHBOARD ---
 st.title(f"{dev_name} | Market Analysis")
@@ -125,7 +133,6 @@ ax.text(our_ask, 0.2, f"OUR ASK\n${our_ask:,.0f} PSF", ha="center", weight="bold
 
 ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
-# --- LOGO ---
 if os.path.exists("logo.png"):
     logo_img = mpimg.imread("logo.png")
     logo_ax = fig.add_axes([0.82, 0.82, 0.15, 0.10]) 
@@ -138,15 +145,14 @@ ax.set_xlim(label_x - 20, max(t_high, a_high, fmv, upper_10) + 120)
 
 st.pyplot(fig)
 
-# --- DOWNLOAD SECTION (Custom Filename) ---
-st.sidebar.divider()
-st.sidebar.subheader("Download Options")
+# --- DOWNLOAD SECTION ---
+st.sidebar.markdown("---")
+st.sidebar.markdown("### Download")
 
-# Formatting clean strings for filename
-clean_dev = dev_name.replace(" ", "_")
-clean_unit = unit_no.replace("-", "_").replace(" ", "_")
-clean_name = prepared_by.replace(" ", "_")
-custom_filename = f"{clean_dev}_{clean_unit}_{file_date}_{clean_name}.pdf"
+fn_dev = dev_name.replace(" ", "_")
+fn_unit = unit_no.replace("-", "_").replace(" ", "_")
+fn_name = prepared_by.replace(" ", "_")
+custom_filename = f"{fn_dev}_{fn_unit}_{file_date}_{fn_name}.pdf"
 
 buf_pdf = io.BytesIO()
 fig.savefig(buf_pdf, format="pdf", bbox_inches='tight')
