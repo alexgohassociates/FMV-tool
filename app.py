@@ -48,7 +48,6 @@ elif abs(diff_pct) <= 0.10:
 else:
     status_text, status_color = "HIGH PREMIUM", "#e74c3c"
 
-# Force GMT+8 Timestamp
 tz_sg = timezone(timedelta(hours=8))
 gen_time = datetime.now(tz_sg).strftime("%d %b %Y, %H:%M (GMT+8)")
 
@@ -56,7 +55,6 @@ gen_time = datetime.now(tz_sg).strftime("%d %b %Y, %H:%M (GMT+8)")
 st.title(f"🏢 {dev_name} | Market Positioning Report")
 st.caption(f"Unit: {unit_no} • {sqft} sqft • {u_type} | Data as of {gen_time}")
 
-# Metric Cards
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Asking PSF", f"${my_ask:,.0f}")
 m2.metric("Est. FMV", f"${fmv:,.0f}")
@@ -78,27 +76,39 @@ ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', linewidth=6)
 ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', linewidth=6)
 
+# PSF Values at the start and end of range
+ax.text(t_low, 2.15, f"${int(t_low)}", ha='center', weight='bold', color='#1f77b4')
+ax.text(t_high, 2.15, f"${int(t_high)}", ha='center', weight='bold', color='#1f77b4')
+ax.text(a_low, 0.75, f"${int(a_low)}", ha='center', weight='bold', color='#34495e')
+ax.text(a_high, 0.75, f"${int(a_high)}", ha='center', weight='bold', color='#34495e')
+
 # Indicators
 ax.scatter(fmv, 2, color='black', s=180, zorder=5)
 ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
 ax.scatter(my_ask, 1, color=status_color, s=300, edgecolors='black', zorder=6)
 ax.plot([my_ask, my_ask], [1, 0.4], color=status_color, linestyle='--', linewidth=2.5)
 
-# Axis Labels
+# Left Aligned Labels (Positioned relative to the minimum overall X value)
 min_plot_x = min(t_low, a_low, fmv, lower_10)
-label_x = min_plot_x - 50
-ax.text(label_x, 2, 'TRANSACTED', weight='bold', color='#2980b9', ha='right', va='center')
-ax.text(label_x, 1, 'MARKET ASKING', weight='bold', color='#2c3e50', ha='right', va='center')
+label_x = min_plot_x - 120 
+ax.text(label_x, 2, 'TRANSACTED', weight='bold', color='#2980b9', ha='left', va='center')
+ax.text(label_x, 1, 'MARKET ASKING', weight='bold', color='#2c3e50', ha='left', va='center')
 
-# Values
+# Header for Download (Metadata)
+header_text = f"Dev: {dev_name}  |  Unit: {unit_no}  |  Size: {sqft} sqft  |  Type: {u_type}"
+ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
+         bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
+
+# Values Labels
 ax.text(fmv, 0.2, f'FMV\n${fmv:,.0f}', ha='center', weight='bold', fontsize=11)
-ax.text(my_ask, 0.2, f'ASKING\n${my_ask:,.0f}', ha='center', weight='bold', color=status_color, fontsize=12)
+ax.text(my_ask, 0.2, f'MY ASK\n${my_ask:,.0f}', ha='center', weight='bold', color=status_color, fontsize=12)
 
 # Positioning Title
 ax.text((t_low + t_high)/2, 2.7, f"POSITIONING: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
 ax.axis('off')
-ax.set_ylim(0, 3)
+ax.set_ylim(0, 3.7) # Height adjusted for header
+ax.set_xlim(label_x - 20, max(t_high, a_high, fmv, upper_10) + 80)
 
 # Render Plot
 st.pyplot(fig)
@@ -113,4 +123,4 @@ st.sidebar.download_button(
     mime="image/png"
 )
 
-st.success(f"Analysis complete. This property is currently positioned as a **{status_text}**.")
+st.success(f"Analysis complete for {dev_name} {unit_no}.")
