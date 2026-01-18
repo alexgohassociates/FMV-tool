@@ -12,105 +12,39 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# --- CSS: V3.1 (VISUAL POLISH & MENU FIX) ---
+# --- CSS: V4.0 (NATIVE MODE - NO FORCED THEMES) ---
 st.markdown("""
     <style>
-    /* 1. FORCE LIGHT THEME (Fixes System Dark Mode Issues) */
-    :root {
-        --primary-color: #ff4b4b;
-        --background-color: #ffffff;
-        --secondary-background-color: #f0f2f6;
-        --text-color: #000000;
-        --font: "Helvetica", sans-serif;
-    }
-    [data-testid="stAppViewContainer"] {
-        background-color: #ffffff;
-        color-scheme: light;
-    }
-    
-    /* 2. Main App Background -> White */
-    .stApp { background-color: white !important; }
-    
-    /* 3. Global Text -> Black */
-    h1, h2, h3, p, div, label, span, .stMetric label, [data-testid="stMetricValue"] {
-        color: #000000 !important;
-        font-family: 'Helvetica', sans-serif;
-    }
-    
-    /* 4. Sidebar -> Light Grey/White */
-    [data-testid="stSidebar"] {
-        background-color: #ffffff !important;
-        border-right: 1px solid #e0e0e0;
-    }
-    
-    /* 5. Inputs -> Light Grey */
-    [data-testid="stSidebar"] .stTextInput input, 
-    [data-testid="stSidebar"] .stNumberInput input {
-        color: #000000 !important;
-        background-color: #f0f2f6 !important;
-        border: 1px solid #d1d5db !important;
-    }
-    [data-testid="stSidebar"] label {
-        color: #000000 !important;
+    /* We REMOVED the forced :root variables and background colors.
+       Streamlit will now handle Dark/Light mode automatically.
+    */
+
+    /* 1. Sidebar Toggle Button Fix */
+    /* We make the button neutral so it is visible in both Dark & Light modes */
+    [data-testid="stSidebarCollapsedControl"] {
+        display: block !important;
+        visibility: visible !important;
+        border: 1px solid rgba(128, 128, 128, 0.5) !important; /* Subtle grey border */
+        border-radius: 8px !important;
+        padding: 4px !important;
+        margin-top: 10px !important;
+        margin-left: 10px !important;
+        background-color: transparent !important; /* Let theme decide bg */
     }
 
+    /* 2. Download Button Styling */
+    /* We use 'inherit' so it adapts to dark/light text automatically */
     div.stDownloadButton > button {
-        background-color: #f0f2f6 !important;
-        color: #000000 !important;
-        border: 1px solid #d1d5db !important;
+        border: 1px solid rgba(128, 128, 128, 0.5) !important;
         width: 100%;
     }
 
-    /* 6. HEADER & MENU FIX (The "Strange Box" Fix) */
-    
-    /* Force Header to White */
-    [data-testid="stHeader"] {
-        background-color: white !important;
-        border-bottom: 1px solid #e0e0e0;
-    }
-
-    /* Hide Rainbow Decoration */
+    /* 3. Hide ONLY the Decoration Line (Rainbow) */
     [data-testid="stDecoration"] {
         display: none !important;
     }
 
-    /* Target the Toolbar Buttons (Fork, Menu, etc.) to ensure they look clean */
-    [data-testid="stToolbar"] button {
-        color: #000000 !important;
-        border: none !important;
-        background-color: transparent !important;
-        font-family: 'Helvetica', sans-serif !important;
-    }
-    
-    /* FIX THE DROPDOWN MENU (Black text on Dark background issue) */
-    /* We force the popup menu to have a White background */
-    div[data-testid="stToolbarPopover"] {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 1px solid #e0e0e0 !important;
-    }
-    
-    /* Force items inside the menu to be Black */
-    div[data-testid="stToolbarPopover"] span,
-    div[data-testid="stToolbarPopover"] p,
-    div[data-testid="stToolbarPopover"] div {
-        color: #000000 !important;
-    }
-
-    /* 7. SIDEBAR TOGGLE BUTTON NATURAL STYLE */
-    [data-testid="stSidebarCollapsedControl"] {
-        color: #000000 !important;
-    }
-    
-    [data-testid="stSidebarCollapsedControl"] button, 
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="stSidebarCollapsedControl"] i {
-        color: #000000 !important;
-        fill: #000000 !important;
-        stroke: #000000 !important;
-    }
-
-    /* Hide Footer */
+    /* 4. Hide Footer */
     footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
@@ -249,6 +183,8 @@ st.divider()
 fig = None
 
 if has_data:
+    # We explicitly set facecolor='white' so the chart looks like a document 
+    # regardless of whether the app is in Dark or Light mode.
     fig, ax = plt.subplots(figsize=(12, 7), dpi=300)
     fig.patch.set_facecolor('white')
     
