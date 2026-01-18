@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# --- CSS: V3.0 (RESTORATION & STABILITY) ---
+# --- CSS: V3.1 (VISUAL POLISH & MENU FIX) ---
 st.markdown("""
     <style>
     /* 1. FORCE LIGHT THEME (Fixes System Dark Mode Issues) */
@@ -61,23 +61,43 @@ st.markdown("""
         width: 100%;
     }
 
-    /* 6. HEADER RESTORATION (The Fix) */
-    /* We DO NOT hide the header. We just paint it white. */
+    /* 6. HEADER & MENU FIX (The "Strange Box" Fix) */
+    
+    /* Force Header to White */
     [data-testid="stHeader"] {
         background-color: white !important;
         border-bottom: 1px solid #e0e0e0;
-        visibility: visible !important; /* Ensure it is visible */
     }
 
-    /* Hide ONLY the rainbow decoration line */
+    /* Hide Rainbow Decoration */
     [data-testid="stDecoration"] {
         display: none !important;
     }
+
+    /* Target the Toolbar Buttons (Fork, Menu, etc.) to ensure they look clean */
+    [data-testid="stToolbar"] button {
+        color: #000000 !important;
+        border: none !important;
+        background-color: transparent !important;
+        font-family: 'Helvetica', sans-serif !important;
+    }
     
-    /* We leave stToolbar (top right menu) VISIBLE for now to ensure stability */
+    /* FIX THE DROPDOWN MENU (Black text on Dark background issue) */
+    /* We force the popup menu to have a White background */
+    div[data-testid="stToolbarPopover"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #e0e0e0 !important;
+    }
     
+    /* Force items inside the menu to be Black */
+    div[data-testid="stToolbarPopover"] span,
+    div[data-testid="stToolbarPopover"] p,
+    div[data-testid="stToolbarPopover"] div {
+        color: #000000 !important;
+    }
+
     /* 7. SIDEBAR TOGGLE BUTTON NATURAL STYLE */
-    /* We stop forcing position:fixed. We just force the COLOR. */
     [data-testid="stSidebarCollapsedControl"] {
         color: #000000 !important;
     }
