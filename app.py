@@ -132,16 +132,17 @@ with st.sidebar:
     st.markdown("---")
     
     st.markdown("### Market Data (PSF)")
-    t1 = st.number_input("Lowest Transacted (PSF)", value=None, step=10)
-    t2 = st.number_input("Highest Transacted (PSF)", value=None, step=10)
+    # UPDATED: step=0.1 and format="%.1f" to allow decimals (e.g. 8.3)
+    t1 = st.number_input("Lowest Transacted (PSF)", value=None, step=0.1, format="%.1f")
+    t2 = st.number_input("Highest Transacted (PSF)", value=None, step=0.1, format="%.1f")
     
     if t1 is not None and t2 is not None:
         t_low, t_high = min(t1, t2), max(t1, t2)
     else:
         t_low, t_high = 0, 0
     
-    a1 = st.number_input("Lowest Asking (PSF)", value=None, step=10)
-    a2 = st.number_input("Highest Asking (PSF)", value=None, step=10)
+    a1 = st.number_input("Lowest Asking (PSF)", value=None, step=0.1, format="%.1f")
+    a2 = st.number_input("Highest Asking (PSF)", value=None, step=0.1, format="%.1f")
     
     if a1 is not None and a2 is not None:
         a_low, a_high = min(a1, a2), max(a1, a2)
@@ -153,13 +154,15 @@ with st.sidebar:
     
     c_fmv1, c_fmv2 = st.columns(2)
     with c_fmv1:
-        st.number_input("FMV (PSF)", value=None, step=10.0, key="fmv_psf", on_change=calc_fmv_quantum)
+        # UPDATED: step=0.1 and format="%.1f" for FMV PSF
+        st.number_input("FMV (PSF)", value=None, step=0.1, format="%.1f", key="fmv_psf", on_change=calc_fmv_quantum)
     with c_fmv2:
         st.number_input("FMV (Quantum)", value=None, step=1000.0, key="fmv_quantum", on_change=calc_fmv_psf)
 
     c_ask1, c_ask2 = st.columns(2)
     with c_ask1:
-        st.number_input("Ask (PSF)", value=None, step=10.0, key="ask_psf", on_change=calc_ask_quantum)
+        # UPDATED: step=0.1 and format="%.1f" for Ask PSF
+        st.number_input("Ask (PSF)", value=None, step=0.1, format="%.1f", key="ask_psf", on_change=calc_ask_quantum)
     with c_ask2:
         st.number_input("Ask (Quantum)", value=None, step=1000.0, key="ask_quantum", on_change=calc_ask_psf)
 
@@ -217,8 +220,9 @@ st.title(f"{display_dev_name}")
 st.caption(f"Unit: {display_unit_no} | Size: {display_sqft} sqft | Type: {display_u_type}")
 
 c1, c2, c3 = st.columns(3)
-c1.metric("FMV (PSF)", f"${fmv:,.0f} psf" if has_data else "-")
-c2.metric("Asking (PSF)", f"${our_ask:,.0f} psf" if has_data else "-")
+# Update Metrics to show decimals if needed, or keep standard integer formatting for display
+c1.metric("FMV (PSF)", f"${fmv:,.2f} psf" if has_data else "-") # Changed to 2 decimal places for better precision in display
+c2.metric("Asking (PSF)", f"${our_ask:,.2f} psf" if has_data else "-")
 if has_data:
     c3.metric("Variance", f"{diff_pct:+.1%}", delta_color="inverse")
 else:
@@ -258,6 +262,10 @@ if has_data:
     y_labels_10 = -7.0 
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
     
+    # Updated chart labels to show 2 decimal places or 0 depending on preference.
+    # Since inputs are 1 decimal, showing 0 decimals (integer) might round weirdly. 
+    # Let's use :,.0f (integer) for chart labels to keep it clean, unless you want decimals there too.
+    # Keeping clean integer for chart labels for now.
     ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.0f} PSF\n(${upper_5_quant:,.0f})", **style_dict)
     ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF\n(${upper_10_quant:,.0f})", **style_dict)
 
