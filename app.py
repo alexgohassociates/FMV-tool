@@ -217,9 +217,9 @@ st.title(f"{display_dev_name}")
 st.caption(f"Unit: {display_unit_no} | Size: {display_sqft} sqft | Type: {display_u_type}")
 
 c1, c2, c3 = st.columns(3)
-# Update Metrics to show 2 decimal places for PSF
-c1.metric("FMV (PSF)", f"${fmv:,.2f} psf" if has_data else "-")
-c2.metric("Asking (PSF)", f"${our_ask:,.2f} psf" if has_data else "-")
+# METRICS UPDATED TO 1 DECIMAL PLACE
+c1.metric("FMV (PSF)", f"${fmv:,.1f} psf" if has_data else "-")
+c2.metric("Asking (PSF)", f"${our_ask:,.1f} psf" if has_data else "-")
 if has_data:
     c3.metric("Variance", f"{diff_pct:+.1%}", delta_color="inverse")
 else:
@@ -259,19 +259,17 @@ if has_data:
     y_labels_10 = -7.0 
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
     
-    # UPDATED: Changed from :,.0f to :,.2f for PSF values
-    ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.2f} PSF\n(${upper_5_quant:,.0f})", **style_dict)
-    ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.2f} PSF\n(${upper_10_quant:,.0f})", **style_dict)
+    # GRAPH LABELS UPDATED TO 1 DECIMAL PLACE (%.1f)
+    ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.1f} PSF\n(${upper_5_quant:,.0f})", **style_dict)
+    ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.1f} PSF\n(${upper_10_quant:,.0f})", **style_dict)
 
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
-    # UPDATED: Changed from :,.0f to :,.2f for Transacted
-    ax.text(t_low, 2.45, f"${t_low:,.2f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
-    ax.text(t_high, 2.45, f"${t_high:,.2f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
+    ax.text(t_low, 2.45, f"${t_low:,.1f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
+    ax.text(t_high, 2.45, f"${t_high:,.1f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
 
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
-    # UPDATED: Changed from :,.0f to :,.2f for Asking Range
-    ax.text(a_low, 0.55, f"${a_low:,.2f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
-    ax.text(a_high, 0.55, f"${a_high:,.2f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
+    ax.text(a_low, 0.55, f"${a_low:,.1f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
+    ax.text(a_high, 0.55, f"${a_high:,.1f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
 
     text_x_pos = data_min - (data_range * 0.05) 
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
@@ -279,14 +277,12 @@ if has_data:
 
     ax.vlines(fmv, 2, -1.3, linestyles='dotted', colors='black', linewidth=2, zorder=5)
     ax.scatter(fmv, 2, color='black', s=100, zorder=10, marker='D')
-    # UPDATED: Changed from :,.0f to :,.2f for FMV
-    ax.text(fmv, -1.5, f"FMV\n${fmv:,.2f} PSF\n(${fmv_quant:,.0f})", 
+    ax.text(fmv, -1.5, f"FMV\n${fmv:,.1f} PSF\n(${fmv_quant:,.0f})", 
             ha="center", va="top", weight="bold", fontsize=11, color='black')
 
     ax.vlines(our_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
     ax.scatter(our_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
-    # UPDATED: Changed from :,.0f to :,.2f for Our Asking
-    ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.2f} PSF\n(${ask_quant:,.0f})", 
+    ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.1f} PSF\n(${ask_quant:,.0f})", 
             ha="center", va="top", weight="bold", fontsize=11, color='black')
 
     if os.path.exists("logo.png"):
