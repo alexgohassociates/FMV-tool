@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# --- CSS: SURGICAL HEADER FIX V2.1 ---
+# --- CSS: NUCLEAR BUTTON FIX (V2.2) ---
 st.markdown("""
     <style>
     /* 1. Main App Background -> White */
@@ -71,41 +71,42 @@ st.markdown("""
         margin-bottom: 1rem !important;
     }
 
-    /* --- HEADER & SIDEBAR BUTTON FIXES (V2.1) --- */
+    /* --- NUCLEAR HEADER & BUTTON FIX (V2.2) --- */
     
-    /* A. Hide the decoration rainbow line */
-    [data-testid="stDecoration"] {
-        display: none;
+    /* A. Hide Toolbar & Decoration */
+    [data-testid="stToolbar"], [data-testid="stDecoration"] {
+        display: none !important;
     }
 
-    /* B. Hide the top-right toolbar (Share, GitHub, etc.) */
-    [data-testid="stToolbar"] {
-        display: none;
-    }
-
-    /* C. Fix the Header Background (Removes the Black Bar) */
+    /* B. Force Header to White */
     [data-testid="stHeader"] {
         background-color: white !important;
-        border-bottom: 1px solid #e0e0e0; /* Optional: adds a subtle line */
+        border-bottom: 1px solid #e0e0e0;
+        z-index: 1 !important; /* Low priority */
     }
 
-    /* D. Force the Sidebar Toggle Button to be Visible and Black */
+    /* C. NUCLEAR BUTTON FIX: Detach and Pin to Top-Left */
     [data-testid="stSidebarCollapsedControl"] {
+        position: fixed !important;
+        top: 10px !important;
+        left: 10px !important;
         display: block !important;
         visibility: visible !important;
-        color: #000000 !important;
-        z-index: 100000 !important; /* Force it to the very front */
-        left: 0.5rem !important; /* Ensure it's not hidden off-screen */
-        top: 0.5rem !important;
+        z-index: 999999 !important; /* Highest priority */
+        background-color: white !important; /* Small backing to ensure contrast */
+        border-radius: 5px;
+        padding: 2px;
     }
     
-    /* E. Ensure the icon inside the button is also black */
-    [data-testid="stSidebarCollapsedControl"] button {
+    /* D. Force the Arrow Icon to be Black */
+    [data-testid="stSidebarCollapsedControl"] button,
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="stSidebarCollapsedControl"] i {
         color: #000000 !important;
-        background-color: transparent !important;
+        fill: #000000 !important;
+        stroke: #000000 !important;
     }
     
-    /* Hide the footer */
     footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
