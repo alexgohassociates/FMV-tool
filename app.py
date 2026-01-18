@@ -12,13 +12,13 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# --- CSS: NUCLEAR BUTTON FIX (V2.2) ---
+# --- CSS: V2.3 (SAFE & HIGH CONTRAST) ---
 st.markdown("""
     <style>
     /* 1. Main App Background -> White */
     .stApp { background-color: white !important; }
     
-    /* 2. Global Text -> Black & Helvetica */
+    /* 2. Global Text -> Black */
     h1, h2, h3, p, div, label, .stMetric label, [data-testid="stMetricValue"] {
         color: #000000 !important;
         font-family: 'Helvetica', sans-serif;
@@ -30,7 +30,7 @@ st.markdown("""
         border-right: 1px solid #e0e0e0;
     }
 
-    /* 4. Sidebar Inputs -> Light Grey Box with Black Text */
+    /* 4. Inputs -> Light Grey */
     [data-testid="stSidebar"] .stTextInput input, 
     [data-testid="stSidebar"] .stNumberInput input {
         color: #000000 !important;
@@ -38,80 +38,58 @@ st.markdown("""
         border-color: #d1d5db !important;
     }
     
-    /* 5. Sidebar Labels -> Black */
     [data-testid="stSidebar"] label {
         color: #000000 !important;
         margin-bottom: 2px !important;
     }
 
-    /* 6. DOWNLOAD BUTTON -> Match Input Fields */
     div.stDownloadButton > button {
         background-color: #f0f2f6 !important;
         color: #000000 !important;
         border: 1px solid #d1d5db !important;
         width: 100%;
     }
-    div.stDownloadButton > button:hover {
-        background-color: #e5e7eb !important;
-        border-color: #9ca3af !important;
-        color: #000000 !important;
-    }
 
-    /* 7. EQUAL SPACING FIX */
-    [data-testid="stSidebar"] .stElementContainer {
-        margin-bottom: 0.8rem !important;
-    }
-    [data-testid="stSidebar"] h3 {
-        padding-top: 0.5rem !important;
-        padding-bottom: 0.2rem !important;
-        margin-bottom: 0 !important;
-    }
-    [data-testid="stSidebar"] hr {
-        margin-top: 1rem !important;
-        margin-bottom: 1rem !important;
-    }
-
-    /* --- NUCLEAR HEADER & BUTTON FIX (V2.2) --- */
-    
-    /* A. Hide Toolbar & Decoration */
-    [data-testid="stToolbar"], [data-testid="stDecoration"] {
+    /* 5. Header Cleanup */
+    /* Hide Decoration & Toolbar */
+    [data-testid="stDecoration"], [data-testid="stToolbar"] {
         display: none !important;
     }
 
-    /* B. Force Header to White */
+    /* Force Header Background to White */
     [data-testid="stHeader"] {
         background-color: white !important;
         border-bottom: 1px solid #e0e0e0;
-        z-index: 1 !important; /* Low priority */
     }
 
-    /* C. NUCLEAR BUTTON FIX: Detach and Pin to Top-Left */
+    /* 6. SIDEBAR BUTTON FIX (The "White on White" Killer) */
     [data-testid="stSidebarCollapsedControl"] {
-        position: fixed !important;
-        top: 10px !important;
-        left: 10px !important;
         display: block !important;
-        visibility: visible !important;
-        z-index: 999999 !important; /* Highest priority */
-        background-color: white !important; /* Small backing to ensure contrast */
-        border-radius: 5px;
-        padding: 2px;
+        color: #000000 !important;
+        background-color: white !important;
+        z-index: 100 !important;
+        
+        /* Add a border so you can see the box even if the icon is invisible */
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-top: 5px;
+        margin-left: 5px;
     }
     
-    /* D. Force the Arrow Icon to be Black */
-    [data-testid="stSidebarCollapsedControl"] button,
-    [data-testid="stSidebarCollapsedControl"] svg,
+    /* Force the actual SVG Arrow to be Black */
+    [data-testid="stSidebarCollapsedControl"] svg, 
     [data-testid="stSidebarCollapsedControl"] i {
         color: #000000 !important;
         fill: #000000 !important;
         stroke: #000000 !important;
     }
     
+    /* Hide Footer */
     footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# --- CALLBACK FUNCTIONS FOR AUTO-CALCULATION ---
+# --- CALLBACK FUNCTIONS ---
 def calc_fmv_quantum():
     if st.session_state.sqft and st.session_state.fmv_psf:
         st.session_state.fmv_quantum = st.session_state.fmv_psf * st.session_state.sqft
@@ -133,7 +111,6 @@ with st.sidebar:
     if os.path.exists("logo.png"):
         st.image("logo.png", use_container_width=True)
     
-    # 2. Property Details
     st.markdown("### Property Details")
     dev_name = st.text_input("Development / Address", "")
     unit_no  = st.text_input("Unit", "")
@@ -143,7 +120,6 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # 3. Market Data
     st.markdown("### Market Data (PSF)")
     t1 = st.number_input("Lowest Transacted (PSF)", value=None, step=10)
     t2 = st.number_input("Highest Transacted (PSF)", value=None, step=10)
@@ -191,21 +167,17 @@ if has_data:
     fmv = float(fmv_val)
     our_ask = float(ask_val)
     
-    # Thresholds (PSF)
     upper_5 = fmv * 1.05
     upper_10 = fmv * 1.10
     
-    # Thresholds (Quantum)
     upper_5_quant = upper_5 * sqft
     upper_10_quant = upper_10 * sqft
     
     diff_pct = (our_ask - fmv) / fmv
     
-    # Quantum Calculation for Display
     fmv_quant = fmv * sqft
     ask_quant = our_ask * sqft
     
-    # Status Logic
     if diff_pct <= 0.05:
         status_text = "Asking ≤ +5% of FMV"
         status_color = "#2ecc71" # Green
@@ -260,23 +232,17 @@ if has_data:
     data_range = data_max - data_min
     padding = data_range * 0.25 
     
-    # Increased bottom limit slightly to accommodate extra text lines
     y_min_limit = -9.0 
     y_max_limit = 5.5
     x_min_limit = data_min - padding
     x_max_limit = data_max + (padding*0.5)
 
-    # 1. Shaded Zones
     y_shade = [y_min_limit, -0.5] 
     
-    # Green (< +5%)
     ax.fill_betweenx(y_shade, x_min_limit, upper_5, color='#2ecc71', alpha=0.15)
-    # Yellow (+5% to +10%)
     ax.fill_betweenx(y_shade, upper_5, upper_10, color='#f1c40f', alpha=0.15)
-    # Red (> +10%)
     ax.fill_betweenx(y_shade, upper_10, x_max_limit, color='#e74c3c', alpha=0.15)
 
-    # 2. Zone Labels (WITH QUANTUM)
     y_labels_5 = -5.0 
     y_labels_10 = -7.0 
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
@@ -284,7 +250,6 @@ if has_data:
     ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.0f} PSF\n(${upper_5_quant:,.0f})", **style_dict)
     ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF\n(${upper_10_quant:,.0f})", **style_dict)
 
-    # 3. Lines
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
     ax.text(t_low, 2.45, f"${t_low:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
     ax.text(t_high, 2.45, f"${t_high:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
@@ -297,23 +262,16 @@ if has_data:
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
-    # 4. FMV vs Ask Markers (WITH QUANTUM)
-    
-    # FMV Marker
     ax.vlines(fmv, 2, -1.3, linestyles='dotted', colors='black', linewidth=2, zorder=5)
     ax.scatter(fmv, 2, color='black', s=100, zorder=10, marker='D')
-    # Updated Label with Quantum
     ax.text(fmv, -1.5, f"FMV\n${fmv:,.0f} PSF\n(${fmv_quant:,.0f})", 
             ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    # ASKING Marker
     ax.vlines(our_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
     ax.scatter(our_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
-    # Updated Label with Quantum
     ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.0f} PSF\n(${ask_quant:,.0f})", 
             ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    # 5. Header / Footer
     if os.path.exists("logo.png"):
         try:
             logo_img = Image.open("logo.png")
@@ -341,7 +299,6 @@ if has_data:
 elif not has_data:
     st.info("👈 Please enter property details and market data in the sidebar to generate the analysis.")
 
-# --- DOWNLOAD BUTTON ---
 with st.sidebar:
     st.markdown("---")
     if fig is not None:
